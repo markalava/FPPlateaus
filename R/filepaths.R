@@ -1,0 +1,88 @@
+
+make_filepaths_inputs <- function(FPEM_results_dir,
+                                  FPEM_run_names,
+                                  denominator_count_filename) {
+
+    stopifnot(dir.exists(
+        res_dir_wra <- file.path(FPEM_results_dir, FPEM_run_names$wra)))
+    stopifnot(dir.exists(
+        res_dir_mwra <- file.path(FPEM_results_dir, FPEM_run_names$mwra)))
+    stopifnot(dir.exists(
+        res_dir_uwra <- file.path(FPEM_results_dir, FPEM_run_names$uwra)))
+
+    return(
+        list(FPEM_results_dir = FPEM_results_dir,
+             res_dir_wra = res_dir_wra,
+             res_dir_mwra = res_dir_mwra,
+             res_dir_uwra = res_dir_uwra,
+             denominator_count_filename = denominator_count_filename,
+             FPEM_run_names = FPEM_run_names))
+}
+
+
+make_filepaths_outputs <- function(project_dir = ".",
+                                   datestamp,
+                                   smoothing_method = c("annual_difference",
+                                                        "moving_average",
+                                                        "local_linear"),
+                                   min_stall_length = NULL,
+                                   change_condition_percent) {
+
+    ## -------* Check Arguments
+
+    smoothing_method <- match.arg(smoothing_method)
+
+    if (is.null(min_stall_length)) {
+        if (identical(smoothing_method, "annual_difference"))
+            min_stall_length <- 2
+        else min_stall_length <- 1
+    } else {
+        if (!identical(as.double(min_stall_length), as.double(round(min_stall_length))))
+            stop("'min_stall_length' must be a whole number.")
+        if (min_stall_length <= 0)
+            stop("'min_stall_length' must be positive, non-zero.")
+        if (min_stall_length > 5)
+            warning("'min_stall_length' > 5; is this OK?")
+    }
+
+    stopifnot(is.numeric(change_condition_percent))
+    stopifnot(change_condition_percent >= 0 &&
+              change_condition_percent <= 100)
+
+    ## -------* Paths
+
+    results_output_dir <-
+                 ensure_new_dir(file.path(project_dir, "results",
+                                          paste0("output_", datestamp,
+                                                 "_", smoothing_method,
+                                                 "_", min_stall_length, "_yr",
+                                                 "_", change_condition_percent, "pc")))
+    results_output_rda_dir <- ensure_new_dir(file.path(results_output_dir, "rda"))
+    results_output_tables_dir <- ensure_new_dir(file.path(results_output_dir, "tables"))
+    results_output_plots_dir <- ensure_new_dir(file.path(results_output_dir, "plots"))
+
+    return(
+        list(results_output_dir = results_output_dir,
+             results_output_rda_dir = results_output_rda_dir,
+             wra_all_res_filepath = file.path(results_output_rda_dir, "wra_all_res_df.rda"),
+             mwra_all_res_filepath = file.path(results_output_rda_dir, "mwra_all_res_df.rda"),
+             uwra_all_res_filepath = file.path(results_output_rda_dir, "uwra_all_res_df.rda"),
+             results_output_plots_dir = results_output_plots_dir,
+             results_output_tables_dir = results_output_tables_dir,
+             wra_all_results_tables_filepath =
+                 file.path(results_output_tables_dir, "wra_all_results.xlsx"),
+             mwra_all_results_tables_filepath =
+                 file.path(results_output_tables_dir, "mwra_all_results.xlsx"),
+             uwra_all_results_tables_filepath =
+                 file.path(results_output_tables_dir, "uwra_all_results.xlsx")
+             ))
+}
+
+
+parse_results_output_dir <- function(results_output_dir) {
+    spl <- strsplit(results_output_dir, "_")[[1]]
+    list(datestamp = spl[2],
+         smoothing_method = paste0(spl[3], "_", spl[4]),
+         min_stall_length = as.numeric(spl[5]),
+         change_condition_percent = as.numeric(gsub("pc", "", spl[7])))
+    }
