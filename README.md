@@ -1,2 +1,3 @@
 # cp_plateaus_2023
-Contraceptive plateaus paper (2023)
+
+Code and manuscript for the contraceptive plateaus paper (2023)
