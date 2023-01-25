@@ -52,7 +52,7 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
     else marital_group_long <- "married"
 
     ## Denominators
-    denom <- get_csv_denominators(run_name = run_name, output_dir = output_dir,
+    denom <- FPEMglobal.aux::get_csv_denominators(run_name = run_name, output_dir = output_dir,
                                        root_dir = root_dir,
                                        filename = denominator_count_filename,
                                        marital_group = marital_group_long) |>
@@ -60,7 +60,7 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
             dplyr::mutate(year_char = as.character(as.numeric(year) + 0.5))
 
     if (identical(marital_group_long, "all women")) {
-        tra <- get_country_traj_aw(run_name = run_name, output_dir = output_dir,
+        tra <- FPEMglobal.aux::get_country_traj_aw(run_name = run_name, output_dir = output_dir,
                                    root_dir = root_dir, iso_code = iso_code)
         denom <- array(denom$count,
                        dim = c(nrow(denom), 1, dim(tra)[[3]]),
@@ -83,7 +83,7 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
 
     } else {
 
-        tra <- get_country_traj_muw(run_name = run_name, output_dir = output_dir,
+        tra <- FPEMglobal.aux::get_country_traj_muw(run_name = run_name, output_dir = output_dir,
                                      root_dir = root_dir,
                                      iso_code = iso_code)
         tra <-
@@ -254,7 +254,8 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
                                filter_width,
                                denominator_count_filename,
                                add_iso_column = TRUE,
-                               .special_return_trajectories = FALSE) {
+                               .special_return_trajectories = FALSE,
+                               .testing = FALSE) {
 
     smooth_type <- match.arg(smooth_type)
     if (identical(smooth_type, "Annual Difference")) filter_width <- NA
@@ -268,7 +269,7 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
     else marital_group_long <- "married"
 
     ## Denominators
-    denom <- get_csv_denominators(run_name = run_name, output_dir = output_dir,
+    denom <- FPEMglobal.aux::get_csv_denominators(run_name = run_name, output_dir = output_dir,
                                    root_dir = root_dir,
                                    filename = denominator_count_filename,
                                    marital_group = marital_group_long,
@@ -279,7 +280,7 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
 
     ## Trajectories
     if (identical(marital_group_long, "all women")) {
-        tra <- get_country_traj_aw(run_name = run_name, output_dir = output_dir,
+        tra <- FPEMglobal.aux::get_country_traj_aw(run_name = run_name, output_dir = output_dir,
                                    root_dir = root_dir, iso_code = iso_code)
         denom <- array(denom$count,
                        dim = c(nrow(denom), 1, dim(tra)[[3]]),
@@ -302,7 +303,7 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
 
     } else {
 
-        tra <- get_country_traj_muw(run_name = run_name, output_dir = output_dir,
+        tra <- FPEMglobal.aux::get_country_traj_muw(run_name = run_name, output_dir = output_dir,
                                      root_dir = root_dir,
                                      iso_code = iso_code)
         tra <-

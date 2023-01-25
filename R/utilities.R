@@ -27,7 +27,7 @@ ensure_new_dir <- function(path) {
 ##' @export
 get_un_reg <- function(output_dir = S0_FPEM_results_mwra_dir,
                        run_name = S0_mar_dir_name_mwra) {
-    get_used_unpd_regions(run_name = run_name,
+    FPEMglobal.aux::get_used_unpd_regions(run_name = run_name,
                                           output_dir = output_dir)
 }
 
@@ -35,7 +35,7 @@ get_un_reg <- function(output_dir = S0_FPEM_results_mwra_dir,
 
 ##' @export
 get_iso_all <- function() {
-    iso_all <- base::merge(get_un_reg(), get_195_countries()[, "iso", drop = FALSE],
+    iso_all <- base::merge(get_un_reg(), FPEMglobal.aux::get_195_countries()[, "iso", drop = FALSE],
                        by = "iso",
                        all.y = TRUE, all.x = FALSE)
     iso_all$name[grep("^C.+te d.+Ivoire$", iso_all$name)] <- "Cote d'Ivoire"
@@ -93,7 +93,7 @@ get_ssa_countries_ordered <- function() get_ssa_countries_ordered_df()$name
 
 ##' @export
 get_FPEMglobal_csv_res <- function(...) {
-    x <- get_csv_res(...)
+    x <- FPEMglobal.aux::get_csv_res(...)
     colnames(x) <- tolower(colnames(x))
     colnames(x)[colnames(x) == "quantile"] <- "percentile"
     return(x)
