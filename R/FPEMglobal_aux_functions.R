@@ -63,8 +63,6 @@
 ##'     indicate the marital group? Such a column is always added if
 ##'     \code{marital_group} has more than one element.
 ##' @param units Units in which to return the counts.
-##' @inheritParams get_csv_res
-##' @inheritParams get_output_dir
 ##'
 ##' @return A \code{\link[tibble]{tibble}} with the denominators; see
 ##'     \dQuote{Details}.
@@ -303,8 +301,6 @@ get_csv_denominators <- function(run_name = NULL, output_dir = NULL, root_dir = 
 ##' @section Specifying results directory:
 ##' See the section in \code{\link{get_csv_res}}.
 ##'
-##' @inheritParams get_output_dir
-##' @inheritParams get_csv_res
 ##' @param iso_code Numeric ISO code of country to get trajectories
 ##'     for.
 ##' @return The loaded country trajectory object.
@@ -369,9 +365,6 @@ get_country_traj_muw <- function(run_name = NULL, output_dir = NULL, root_dir = 
 ##'
 ##' @family trajectory functions
 ##'
-##' @inheritParams get_output_dir
-##' @inheritParams get_csv_res
-##' @inheritParams get_country_traj_muw
 ##' @return The loaded country trajectory object.
 ##' @author Mark Wheldon
 ##' @export
@@ -410,7 +403,6 @@ get_country_traj_aw <- function(run_name = NULL, output_dir = NULL, root_dir = N
 ##'     \code{\link{match_UNlocations}(..., return_names = "UNlocations")} be
 ##'     run to standardize country and area names?
 ##'
-##' @inheritParams get_used_input_data
 ##' @return A \code{\link[tibble]{tibble}} with the requested results.
 ##' @author Mark Wheldon
 ##'
@@ -455,7 +447,6 @@ get_used_unpd_regions <-
 ##'
 ##' @family countries, regions and aggregates functions
 ##'
-##' @inheritParams get_csv_res
 ##' @return A \code{\link[tibble]{tibble}} with the countries.
 ##' @author Mark Wheldon
 ##'
@@ -550,7 +541,6 @@ get_195_countries <- function(clean_col_names = TRUE, verbose = FALSE) {
 ##' @param verbose Logical. Print lots of messages? See
 ##'     \code{link{FPEMglobal.aux}} for a note about \pkg{readr}
 ##'     messages.
-##' @inheritParams get_output_dir
 ##'
 ##' @return A \code{\link[tibble]{tibble}} with the requested results.
 ##'

@@ -1,45 +1,22 @@
 ################################################################################
 ###
-### DATE CREATED: 2022-06-22
+### DATE CREATED: 2023-01-25
 ###
 ### AUTHOR: Mark Wheldon
 ###
 ### PROJECT: Making Family Planning Count: FP Plateaus
 ###
-### DESCRIPTION:
-###
-###     Set up paths, functions, etc.
-###     Use 2022 model run.
-###
-###-----------------------------------------------------------------------------
-###
-###  ** NOTE **
-###
-###  Any objects created here will have names beginning with "S0_" to
-###  identify them throughout the rest of the code.
+### DESCRIPTION: Main file that runs plateau identification, generates
+### results files and plots.
 ###
 ################################################################################
 
-library(ggplot2)
-
-###-----------------------------------------------------------------------------
-### * Source Files
-
-sourceDir <- function(path, trace = TRUE, ...) {
-         op <- options(); on.exit(options(op)) # to reset after each
-         for (nm in list.files(path, pattern = "[.][RrSsQq]$")) {
-            if(trace) cat(nm,":")
-            source(file.path(path, nm), ...)
-            if(trace) cat("\n")
-            options(op)
-         }
-      }
-
-sourceDir("R") # Directory with all the scripts defining functions
-
+library(FPPlateaus)
 
 ###-----------------------------------------------------------------------------
 ### * Directories, Filepaths
+
+## `make_all_results()` will look for these object names by default.
 
 if (nchar(Sys.getenv("SHAREPOINT_PATH_UN"))) {
     S0_sp_dir <- verify_dir(Sys.getenv("SHAREPOINT_PATH_UN"))
@@ -63,3 +40,24 @@ S0_rn_mwra <- "2022_15-49_mwra"
 S0_rn_uwra <- "2022_15-49_uwra"
 
 S0_denominator_count_filename <- "number_of_women_15-49_20220608.csv"
+
+
+###-----------------------------------------------------------------------------
+### * Runs
+
+for (this_smooth in c("annual_difference", "moving_average", "local_linear")) {
+    message("\n\n\n\n======================================================================\n",
+            " ", toupper(this_smooth),
+            "\n======================================================================\n")
+
+    for (this_change_pc in c(0.25, 0.5, 1)) {
+        message("\n\n\n----------------------------------------------------------------------\n",
+                " ", toupper(this_change_pc), " percent threshold",
+                "\n----------------------------------------------------------------------\n")
+        results_output_dir <-
+            make_all_results(smoothing_method = this_smooth,
+                             change_condition_percent = this_change_pc)
+
+        make_all_plots(results_output_dir)
+    }
+}

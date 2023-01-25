@@ -28,6 +28,7 @@
 ##' @param .filter Logical; actually filter out non-stall countries?
 ##' @return Filtered version of \code{x}.
 ##' @author Mark Wheldon
+##' @export
 get_fp_plateau_countries <- function(x,
                            stall_probability = NULL,
                            indicator = NULL,
@@ -89,6 +90,7 @@ get_fp_plateau_countries <- function(x,
 ##'     indicator range to use to generate two plateau types.
 ##' @return Data frame.
 ##' @author Mark Wheldon
+##' @export
 make_main_results_df <- function(x,
                                  stall_probability, indicator, year_lim,
                                  CP_plateau_type_break = 0.5,
@@ -181,6 +183,7 @@ make_main_results_df <- function(x,
 ##'     satisfy the level condition?
 ##' @return Data frame.
 ##' @author Mark Wheldon
+##' @export
 make_main_results_table <- function(x, require_level_condition = TRUE) {
     x <- x |>
         dplyr::filter(!is.na(FP_plateau_type) | !is.na(TFR_stall_type))
@@ -214,6 +217,7 @@ make_main_results_table <- function(x, require_level_condition = TRUE) {
 ##' @param x Output of \code{\link{make_main_results_df}}.
 ##' @return List of data frames.
 ##' @author Mark Wheldon
+##' @export
 make_n_stall_years_list <- function(x) {
 
     ## Stalls in countries --------------------
@@ -353,6 +357,7 @@ make_n_stall_years_list <- function(x) {
 ##' @inheritParams get_fp_plateau_countries
 ##' @return List of all summaries.
 ##' @author Mark Wheldon
+##' @export
 make_all_results_list <- function(x, stall_probability = 0.8, indicator = "Modern",
                                year_lim = c(1980.5, 2019.5)) {
     ## Filter
@@ -387,6 +392,7 @@ make_all_results_list <- function(x, stall_probability = 0.8, indicator = "Moder
 ##' @param x Result of \code{\link{make_n_stall_years_list}}.
 ##' @return Integer.
 ##' @author Mark Wheldon
+##' @export
 count_n_plateau_countries <- function(x) {
     nrow(subset(x$n_stall_years_list$n_stall_years_country_summary_df,
                 subset = FP_n_stall_years_sum > 0 & region != "TOTAL"))
@@ -399,6 +405,7 @@ count_n_plateau_countries <- function(x) {
 ##' @param rename Character string; new name for the \dQuote{value} column.
 ##' @return Data frame that can be used as a table.
 ##' @author Mark Wheldon
+##' @export
 make_tbl_country_n_plateau_years <- function(x, rename = NULL) {
     tbl_df <- subset(x$n_stall_years_list$n_stall_years_country_summary_df,
                  subset = FP_n_stall_years_sum > 0 & region != "TOTAL",
@@ -430,6 +437,7 @@ make_tbl_country_n_plateau_years <- function(x, rename = NULL) {
 ##' @param patterns Logical; use \pkg{ggpattern} functions to fill in the bars.
 ##' @return \code{\link{ggplot2}} plot (invisibly).
 ##' @author Mark Wheldon
+##' @export
 make_period_compare_plot <- function(x,
                                      keep_only_stalls_c = TRUE,
                                      by_FP_plateau_type = TRUE,

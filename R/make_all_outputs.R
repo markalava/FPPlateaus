@@ -1,6 +1,7 @@
 ###-----------------------------------------------------------------------------
 ### * Check Arguments
 
+##' @export
 check_min_stall_length <- function(min_stall_length, smoothing_method) {
     if (is.null(min_stall_length)) {
         if (identical(smoothing_method, "annual_difference"))
@@ -17,6 +18,7 @@ check_min_stall_length <- function(min_stall_length, smoothing_method) {
     return(min_stall_length)
 }
 
+##' @export
 check_change_condition_percent <- function(change_condition_percent) {
     stopifnot(is.numeric(change_condition_percent))
     stopifnot(change_condition_percent >= 0 &&
@@ -28,6 +30,7 @@ check_change_condition_percent <- function(change_condition_percent) {
 ###-----------------------------------------------------------------------------
 ### * Generate Plateau Results
 
+##' @export
 make_all_results <- function(country_isos_to_process = NULL,
                              smoothing_method = c("annual_difference",
                                                   "moving_average",
@@ -326,6 +329,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 ################################################################################
 
 
+##' @export
 make_all_plots <- function(results_output_dir,
                            project_dir = ".", verbose = FALSE) {
 

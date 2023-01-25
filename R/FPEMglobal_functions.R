@@ -27,7 +27,7 @@
 ### OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ### SOFTWARE.
 
-
+##' @export
 extractDenominators <- function(denominator_csv, in_union) {
   data <- read.csv(
     file = denominator_csv,

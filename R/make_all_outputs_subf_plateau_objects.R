@@ -3,6 +3,7 @@
 ###-----------------------------------------------------------------------------
 ### * Math / Stat
 
+##' @export
 bound_within_a_b <- function(x, a, b, tol = 1e-6, tol_a = tol, tol_b = tol) {
     stopifnot(a < b)
     stopifnot(is.finite(tol_a) && is.finite(tol_b))
@@ -14,12 +15,15 @@ bound_within_a_b <- function(x, a, b, tol = 1e-6, tol_a = tol, tol_b = tol) {
     return(x)
 }
 
+##' @export
 bound_within_zero_one <- function(x, tol = 1e-6, tol_0 = NULL, tol_1 = NULL) {
     bound_within_a_b(x = x, a = 0, b = 1, tol = tol)
 }
 
+##' @export
 logit <- function(p) log(p / (1 - p))
 
+##' @export
 logitSafer <- function(x) {
     ## Budge values of x == 0 or x == 1
     x <- bound_within_zero_one(x)
@@ -32,6 +36,7 @@ logitSafer <- function(x) {
 
 ##----------------------------------------------------------------------
 
+##' @export
 make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
                            root_dir = ".",
                            differences,
@@ -150,6 +155,7 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
 
 ##----------------------------------------------------------------------
 
+##' @export
 add_stall_indicators_annual_changes <- function(df, change_condition_percent,
                                                 CP_range_condition_min,
                                                 CP_range_condition_max,
@@ -194,6 +200,7 @@ add_stall_indicators_annual_changes <- function(df, change_condition_percent,
 ## Computes local linear approximations to trajectories. Argument 'x'
 ## is assumed to be a matrix for a single indicator with dimensions: 1 = year, 2 = trajectory.
 
+##' @export
 lm_local_arr <- function(x, bandwidth, return_value = c("beta", "Y_hat")) {
 
     stopifnot((bandwidth %% 2) > 0)
@@ -238,6 +245,7 @@ lm_local_arr <- function(x, bandwidth, return_value = c("beta", "Y_hat")) {
 
 ##----------------------------------------------------------------------
 
+##' @export
 make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
                                root_dir = ".",
                                differences,
@@ -403,6 +411,7 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
 
 ##----------------------------------------------------------------------
 
+##' @export
 add_stall_indicators_probabilities <- function(df,
                                                stall_probability_thresholds,
                                                 CP_range_condition_min,
@@ -439,6 +448,7 @@ add_stall_indicators_probabilities <- function(df,
 
 ##----------------------------------------------------------------------
 
+##' @export
 add_stall_lengths <- function(df, min_stall_length,
                               stall_probability_thresholds,
                               cores = 4) {
@@ -540,6 +550,7 @@ add_stall_lengths <- function(df, min_stall_length,
 
 ##----------------------------------------------------------------------
 
+##' @export
 add_schoumaker_tfr_stalls <- function(x, iso_all) {
     x$stall_TFR <- FALSE
     x$stall_TFR[with(x, {

@@ -1,4 +1,6 @@
 
+
+##' @export
 smooth_trajectories_plot <- function(iso, iso_all = get_iso_all(),
                                 indicator = c("Modern", "MetDemModMeth"),
                                 smooth_type = c("Trajectories", "Moving Average", "Local Linear Smooth"),

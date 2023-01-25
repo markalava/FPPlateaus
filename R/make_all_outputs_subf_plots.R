@@ -3,6 +3,7 @@
 
 ##----------------------------------------------------------------------
 
+##' @export
 plot_q_diff <- function(df, iso_all, ylim = TRUE, xlim = c(1980, 2020)) {
     gp <- ggplot(data = df, aes(x = year, y = `annual_change_50%`)) +
         geom_hline(yintercept = 0, linetype = 2, col = "blue") +
@@ -21,6 +22,7 @@ plot_q_diff <- function(df, iso_all, ylim = TRUE, xlim = c(1980, 2020)) {
 
 ##----------------------------------------------------------------------
 
+##' @export
 stall_plot <- function(plot_df, iso_all,
                        min_stall_length = attr(plot_df, "min_stall_length"),
                        xvar = c("year", "Modern_median", "Unmet_median"),
@@ -400,6 +402,7 @@ stall_plot <- function(plot_df, iso_all,
 
 ##----------------------------------------------------------------------
 
+##' @export
 plot_stall_prob <- function(df, iso_all, ylim = c(0, 1), xlim = c(1980, 2020)) {
     gp <- ggplot(data = df, aes(x = as.numeric(year), y = as.numeric(stall_prob))) +
         geom_line() +
@@ -417,6 +420,8 @@ plot_stall_prob <- function(df, iso_all, ylim = c(0, 1), xlim = c(1980, 2020)) {
 ##----------------------------------------------------------------------
 
 ## Returns a plot for a single country. 'plot_df' must be for a single country.
+
+##' @export
 country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold) {
 
     stopifnot(identical(length(stall_probability_threshold), 1L) &&

@@ -25,6 +25,7 @@
 ##' @param rate_cond_thold Rate condition threshold to load.
 ##' @return A list of data frames.
 ##' @author Mark Wheldon
+##' @export
 load_all_plateaus <- function(path_list) {
     stopifnot(is.list(path_list))
     stopifnot(identical(names(path_list), c("rate_01", "rate_03", "rate_05")))

@@ -1,4 +1,4 @@
-
+##' @export
 make_filepaths_inputs <- function(FPEM_results_dir,
                                   FPEM_run_names,
                                   denominator_count_filename) {
@@ -19,7 +19,7 @@ make_filepaths_inputs <- function(FPEM_results_dir,
              FPEM_run_names = FPEM_run_names))
 }
 
-
+##' @export
 make_filepaths_outputs <- function(project_dir = ".",
                                    datestamp,
                                    smoothing_method = c("annual_difference",
@@ -78,7 +78,7 @@ make_filepaths_outputs <- function(project_dir = ".",
              ))
 }
 
-
+##' @export
 parse_results_output_dir <- function(results_output_dir) {
     spl <- strsplit(results_output_dir, "_")[[1]]
     list(datestamp = spl[2],

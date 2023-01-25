@@ -1,6 +1,6 @@
 ########## BASED ON JM's SCRIPT 'notes/Distribution-of-annual-pp-change.R' ##########
 
-
+##' @export
 appx_rates_load_results <- function(path, level_condition) {
      df <- read.csv(path) #load data
      df <- df[df$Percentile == 0.5, ]
@@ -20,7 +20,7 @@ appx_rates_load_results <- function(path, level_condition) {
      return(df)
 }
 
-
+##' @export
 appx_rates_stats_tbl <- function(df, quantiles = c(0.1,0.25,0.5,0.75,0.9),
                                      thresholds = c(0.1, 0.3, 0.5)) {
     df <- as.data.frame(df)
@@ -40,7 +40,7 @@ appx_rates_stats_tbl <- function(df, quantiles = c(0.1,0.25,0.5,0.75,0.9),
     return(list(quantiles = q, probabilities = p, summary = fns))
 }
 
-
+##' @export
 appx_rates_stats_quantile <- function(x, quantile) {# 'x' is the result from 'appx_rates_stats_tbl' OR a data frame
     stopifnot(is.numeric(quantile))
     if (!is.data.frame(x)) x <- x$quantiles
@@ -49,7 +49,7 @@ appx_rates_stats_quantile <- function(x, quantile) {# 'x' is the result from 'ap
     return(x[x$probability %in% quantile, "quantile"])
 }
 
-
+##' @export
 appx_rates_stats_IQR <- function(x) { # 'x' is the result from 'appx_rates_stats_tbl' OR a data frame
     if (!is.data.frame(x)) x <- x$quantiles
     stopifnot(identical(sort(colnames(x)), sort(c("probability", "quantile"))))
@@ -57,7 +57,7 @@ appx_rates_stats_IQR <- function(x) { # 'x' is the result from 'appx_rates_stats
     return(appx_rates_stats_quantile(x, 0.75) - appx_rates_stats_quantile(x, 0.25))
 }
 
-
+##' @export
 appx_rates_make_ggplot <- function(df, include_table = FALSE, title = NULL) {
     df <- as.data.frame(df)
 

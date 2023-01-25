@@ -1,0 +1,31 @@
+Package: FPPlateaus
+Title: Accompanies article XXXX
+Version: 0.0.0.9000
+Authors@R: 
+    c(person("Mark", "Wheldon", , "wheldon@un.org", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-6897-9644")),
+	person("Joseph", "Molitoris", , "joseph.molitoris@un.org", role = c("aut"),
+           comment = c(ORCID = "0000-0001-6038-8332")))
+Description: Implements methods in article XXX.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.1
+Imports:
+    dplyr,
+    ggforce,
+    ggpattern,
+    ggplot2,
+    ggpubr,
+    gridExtra,
+    magrittr,
+    pbapply,
+    plyr,
+    RColorBrewer,
+    readr,
+    reshape2,
+    rlang,
+    tibble,
+    tidyr,
+    tidyselect,
+    writexl
