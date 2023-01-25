@@ -41,7 +41,8 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
                            root_dir = ".",
                            differences,
                            denominator_count_filename,
-                           add_iso_column = TRUE) {
+                           add_iso_column = TRUE,
+                           .testing = FALSE) {
 
     ## MCMC meta
     load(file.path(output_dir, "mcmc.meta.rda"))
@@ -61,7 +62,11 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
 
     if (identical(marital_group_long, "all women")) {
         tra <- FPEMglobal.aux::get_country_traj_aw(run_name = run_name, output_dir = output_dir,
-                                   root_dir = root_dir, iso_code = iso_code)
+                                                   root_dir = root_dir, iso_code = iso_code)
+
+        ## TESTING: Keep only 10 trajectories
+        if (.testing) tra <- tra[,,1:10]
+
         denom <- array(denom$count,
                        dim = c(nrow(denom), 1, dim(tra)[[3]]),
                        dimnames = list(denom$year_char, "count"))
@@ -86,6 +91,10 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
         tra <- FPEMglobal.aux::get_country_traj_muw(run_name = run_name, output_dir = output_dir,
                                      root_dir = root_dir,
                                      iso_code = iso_code)
+
+        ## TESTING: Keep only 10 trajectories
+        if (.testing) tra <- tra[,,1:10]
+
         tra <-
             aperm(
                 array(c(aperm(tra, c(1,3,2)),
@@ -254,8 +263,7 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
                                filter_width,
                                denominator_count_filename,
                                add_iso_column = TRUE,
-                               .special_return_trajectories = FALSE,
-                               .testing = FALSE) {
+                               .special_return_trajectories = FALSE) {
 
     smooth_type <- match.arg(smooth_type)
     if (identical(smooth_type, "Annual Difference")) filter_width <- NA
@@ -282,6 +290,10 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
     if (identical(marital_group_long, "all women")) {
         tra <- FPEMglobal.aux::get_country_traj_aw(run_name = run_name, output_dir = output_dir,
                                    root_dir = root_dir, iso_code = iso_code)
+
+        ## TESTING: Keep only 10 trajectories
+        if (.testing) tra <- tra[,,1:10]
+
         denom <- array(denom$count,
                        dim = c(nrow(denom), 1, dim(tra)[[3]]),
                        dimnames = list(denom$year_char, "count"))
@@ -306,6 +318,10 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
         tra <- FPEMglobal.aux::get_country_traj_muw(run_name = run_name, output_dir = output_dir,
                                      root_dir = root_dir,
                                      iso_code = iso_code)
+
+        ## TESTING: Keep only 10 trajectories
+        if (.testing) tra <- tra[,,1:10]
+
         tra <-
             aperm(
                 array(c(aperm(tra, c(1,3,2)),

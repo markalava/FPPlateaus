@@ -49,7 +49,8 @@ make_all_results <- function(country_isos_to_process = NULL,
                                                    mwra = S0_mar_dir_name_mwra,
                                                    uwra = S0_mar_dir_name_uwra),
                              denominator_count_filename = S0_denominator_count_filename,
-                             datestamp = NULL) {
+                             datestamp = NULL,
+                             .testing = FALSE) {
 
     message("\n\n\nMaking all results")
 
@@ -121,7 +122,8 @@ make_all_results <- function(country_isos_to_process = NULL,
                                differences = 1, # the order of the differences, hardcoded
                                change_condition = change_condition,
                                filter_width = 3, # the width of the window for moving average or ols, hardcoded
-                               denominator_count_filename = denominator_count_filename)
+                               denominator_count_filename = denominator_count_filename,
+                               .testing = .testing)
         },
         cl = cl)
     parallel::stopCluster(cl = cl)
@@ -173,7 +175,8 @@ make_all_results <- function(country_isos_to_process = NULL,
             make_q_diff_df(z, run_name = filepaths_inputs$FPEM_run_names$rn_wra,
                            output_dir = filepaths_inputs$res_dir_wra, add_iso_column = TRUE,
                            differences = 1,
-                           denominator_count_filename = denominator_count_filename)
+                           denominator_count_filename = denominator_count_filename,
+                           .testing = .testing)
         },
         cl = cl)
     parallel::stopCluster(cl = cl)
@@ -233,7 +236,8 @@ make_all_results <- function(country_isos_to_process = NULL,
                                differences = 1,
                                change_condition = change_condition,
                                filter_width = 3,
-                               denominator_count_filename = denominator_count_filename)
+                               denominator_count_filename = denominator_count_filename,
+                               .testing = .testing)
         },
         cl = cl)
     parallel::stopCluster(cl = cl)
@@ -285,7 +289,8 @@ make_all_results <- function(country_isos_to_process = NULL,
             make_q_diff_df(z, run_name = filepaths_inputs$FPEM_run_names$rn_mwra,
                            output_dir = filepaths_inputs$res_dir_mwra, add_iso_column = TRUE,
                            differences = 1,
-                           denominator_count_filename = denominator_count_filename)
+                           denominator_count_filename = denominator_count_filename,
+                           .testing = .testing)
         },
         cl = cl)
     parallel::stopCluster(cl = cl)
