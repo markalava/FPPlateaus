@@ -1,16 +1,19 @@
 ###-----------------------------------------------------------------------------
 ### * Directories
 
+##' @export
 verify_dir <- function(path) {
     stopifnot(dir.exists(path))
     return(invisible(path))
 }
 
+##' @export
 soft_make_new_dir <- function(path) {
     if (!dir.exists(path)) dir.create(path, recursive = TRUE)
     return(invisible(path))
 }
 
+##' @export
 ensure_new_dir <- function(path) {
     return(verify_dir(soft_make_new_dir(path)))
 }
@@ -21,16 +24,18 @@ ensure_new_dir <- function(path) {
 
 ### Regions
 
+##' @export
 get_un_reg <- function(output_dir = S0_FPEM_results_mwra_dir,
                        run_name = S0_mar_dir_name_mwra) {
-    FPEMglobal.aux::get_used_unpd_regions(run_name = run_name,
+    get_used_unpd_regions(run_name = run_name,
                                           output_dir = output_dir)
 }
 
 ### ISO Codes for 195
 
+##' @export
 get_iso_all <- function() {
-    iso_all <- base::merge(get_un_reg(), FPEMglobal.aux::get_195_countries()[, "iso", drop = FALSE],
+    iso_all <- base::merge(get_un_reg(), get_195_countries()[, "iso", drop = FALSE],
                        by = "iso",
                        all.y = TRUE, all.x = FALSE)
     iso_all$name[grep("^C.+te d.+Ivoire$", iso_all$name)] <- "Cote d'Ivoire"
@@ -38,6 +43,7 @@ get_iso_all <- function() {
     return(iso_all)
 }
 
+##' @export
 get_iso <- function(name, iso_all = NULL) {
     if (is.null(iso_all)) iso_all <- get_iso_all()
     if (identical(length(name), 1L))
@@ -46,6 +52,7 @@ get_iso <- function(name, iso_all = NULL) {
         return(iso_all[iso_all$name %in% name, "iso"])
 }
 
+##' @export
 get_name <- function(iso, iso_all = NULL) {
     if (is.null(iso_all)) iso_all <- get_iso_all()
     if (identical(length(iso), 1L))
@@ -56,8 +63,10 @@ get_name <- function(iso, iso_all = NULL) {
 
 ### Sub-Saharan Africa
 
+##' @export
 get_ssa_regions_ordered <- function() c("Western Africa", "Eastern Africa", "Middle Africa", "Southern Africa")
 
+##' @export
 get_ssa_countries_ordered_df <- function() {
     iso_all <- get_iso_all()
     iso_all[iso_all$sub_saharanafrica == "Yes", c("name", "region")]
@@ -73,6 +82,7 @@ get_ssa_countries_ordered_df <- function() {
     return(ssa_countries_ordered_df)
 }
 
+##' @export
 get_ssa_countries_ordered <- function() get_ssa_countries_ordered_df()$name
 
 
@@ -80,8 +90,10 @@ get_ssa_countries_ordered <- function() get_ssa_countries_ordered_df()$name
 ### * Results
 
 ## FPEMglobal.aux updated so need this hack to keep working
+
+##' @export
 get_FPEMglobal_csv_res <- function(...) {
-    x <- FPEMglobal.aux::get_csv_res(...)
+    x <- get_csv_res(...)
     colnames(x) <- tolower(colnames(x))
     colnames(x)[colnames(x) == "quantile"] <- "percentile"
     return(x)
