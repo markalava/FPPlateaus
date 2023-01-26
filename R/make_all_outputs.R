@@ -44,11 +44,9 @@ make_all_results <- function(country_isos_to_process = NULL,
                              MDMM_range_condition_max = 0.85,
                              year_lim = c(1980, 2022),
                              project_dir = ".",
-                             FPEM_results_dir = S0_FPEM_results_dir,
-                             FPEM_run_names = list(wra = S0_mar_dir_name_wra,
-                                                   mwra = S0_mar_dir_name_mwra,
-                                                   uwra = S0_mar_dir_name_uwra),
-                             denominator_count_filename = S0_denominator_count_filename,
+                             FPEM_results_dir,
+                             FPEM_results_subdir_names,
+                             denominator_count_filename,
                              datestamp = NULL,
                              .testing = FALSE) {
 
@@ -68,16 +66,6 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## -------* Constants
 
-    iso_all <- get_iso_all()
-
-    if (is.null(country_isos_to_process)) {
-        country_isos_to_process <- setNames(iso_all$iso, iso_all$iso)
-    } else {
-        stopifnot(is.numeric(country_isos_to_process))
-        if (is.null(names(country_isos_to_process)))
-            country_isos_to_process <- setNames(country_isos_to_process, country_isos_to_process)
-    }
-
     if (is.null(datestamp)) datestamp <- format(Sys.time(), "%Y%m%d")
 
     filepaths_outputs <- make_filepaths_outputs(project_dir = project_dir,
@@ -87,8 +75,19 @@ make_all_results <- function(country_isos_to_process = NULL,
                            change_condition_percent = change_condition_percent)
 
     filepaths_inputs <- make_filepaths_inputs(FPEM_results_dir = FPEM_results_dir,
-                                              FPEM_run_names = FPEM_run_names,
+                                              FPEM_results_subdir_names = FPEM_results_subdir_names,
                                               denominator_count_filename)
+
+    iso_all <- get_iso_all(output_dir = filepaths_inputs$res_dir_mwra)
+    save_iso_all_to_results(iso_all, filepaths_outputs)
+
+    if (is.null(country_isos_to_process)) {
+        country_isos_to_process <- setNames(iso_all$iso, iso_all$iso)
+    } else {
+        stopifnot(is.numeric(country_isos_to_process))
+        if (is.null(names(country_isos_to_process)))
+            country_isos_to_process <- setNames(country_isos_to_process, country_isos_to_process)
+    }
 
     smooth_type <- switch(smoothing_method,
                           annual_difference = "Annual Difference",
@@ -109,14 +108,14 @@ make_all_results <- function(country_isos_to_process = NULL,
     parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
                                   "smooth_type", "smoothing_method", "min_stall_length",
                                   "denominator_count_filename",
-                                  "change_condition"),
+                                  "change_condition", ".testing"),
                             envir = environment())
     stall_prob_wra_df <-
         pbapply::pblapply(country_isos_to_process,
                  function(z) {
             library(magrittr)
             library(FPEMglobal.aux)
-            make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_run_names$rn_wra,
+            make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_wra,
                                output_dir = filepaths_inputs$res_dir_wra, add_iso_column = TRUE,
                                smooth_type = smooth_type,
                                differences = 1, # the order of the differences, hardcoded
@@ -146,6 +145,8 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Add stall length info
 
+    message("\nCalculating stall lengths")
+
     stall_prob_wra_df <-
         add_stall_lengths(stall_prob_wra_df,
                           min_stall_length = min_stall_length,
@@ -165,14 +166,14 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     cl <- parallel::makeCluster(6)
     parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
-                                            "denominator_count_filename"),
+                                            "denominator_count_filename", ".testing"),
                             envir = environment())
     annual_cp_change_wra_df <-
         pbapply::pblapply(country_isos_to_process,
                  function(z) {
             library(magrittr)
             library(FPEMglobal.aux)
-            make_q_diff_df(z, run_name = filepaths_inputs$FPEM_run_names$rn_wra,
+            make_q_diff_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_wra,
                            output_dir = filepaths_inputs$res_dir_wra, add_iso_column = TRUE,
                            differences = 1,
                            denominator_count_filename = denominator_count_filename,
@@ -205,8 +206,9 @@ make_all_results <- function(country_isos_to_process = NULL,
     save(wra_all_res_df, file = filepaths_outputs$wra_all_res_filepath)
 
     ## Tables / CSV Files
+    ## THESE end up corrupt and unloadable, so don't do
+    ## writexl::write_xlsx(wra_all_res_df, path = filepaths_outputs$wra_all_results_tables_filepath)
 
-    writexl::write_xlsx(wra_all_res_df, path = filepaths_outputs$wra_all_results_tables_filepath)
 
 
     ## -------* Married/In-Union Women (MWRA)
@@ -223,14 +225,14 @@ make_all_results <- function(country_isos_to_process = NULL,
     parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
                                   "smooth_type",
                                   "denominator_count_filename",
-                                  "change_condition"),
+                                  "change_condition", ".testing"),
                             envir = environment())
     stall_prob_mwra_df <-
         pbapply::pblapply(country_isos_to_process,
                  function(z) {
             library(magrittr)
             library(FPEMglobal.aux)
-            make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_run_names$rn_mwra,
+            make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_mwra,
                                output_dir = filepaths_inputs$res_dir_mwra, add_iso_column = TRUE,
                                smooth_type = smooth_type,
                                differences = 1,
@@ -279,14 +281,14 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     cl <- parallel::makeCluster(6)
     parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
-                                            "denominator_count_filename"),
+                                            "denominator_count_filename", ".testing"),
                             envir = environment())
     annual_cp_change_mwra_df <-
         pbapply::pblapply(country_isos_to_process,
                  function(z) {
             library(magrittr)
             library(FPEMglobal.aux)
-            make_q_diff_df(z, run_name = filepaths_inputs$FPEM_run_names$rn_mwra,
+            make_q_diff_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_mwra,
                            output_dir = filepaths_inputs$res_dir_mwra, add_iso_column = TRUE,
                            differences = 1,
                            denominator_count_filename = denominator_count_filename,
@@ -299,6 +301,8 @@ make_all_results <- function(country_isos_to_process = NULL,
 
 
     ## -------** Merge and Save
+
+    message("\nSaving results")
 
     ## Merge annual changes and probabilities
 
@@ -319,8 +323,8 @@ make_all_results <- function(country_isos_to_process = NULL,
     save(mwra_all_res_df, file = filepaths_outputs$mwra_all_res_filepath)
 
     ## Tables / CSV Files
-
-    writexl::write_xlsx(mwra_all_res_df, path = filepaths_outputs$mwra_all_results_tables_filepath)
+    ## THESE end up corrupt and unloadable, so don't do
+    ## writexl::write_xlsx(mwra_all_res_df, path = filepaths_outputs$mwra_all_results_tables_filepath)
 
 
     ## -------* Return
@@ -356,7 +360,7 @@ make_all_plots <- function(results_output_dir,
                                                 min_stall_length = parse_results_output_dir$min_stall_length,
                                                 change_condition_percent = parse_results_output_dir$change_condition_percent)
 
-    iso_all <- get_iso_all()
+    iso_all <- read_iso_all_from_results(results_output_dir)
 
 
     ## -------* Plots

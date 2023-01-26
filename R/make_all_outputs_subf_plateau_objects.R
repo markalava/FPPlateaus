@@ -57,19 +57,23 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
                                        root_dir = root_dir,
                                        filename = denominator_count_filename,
                                        marital_group = marital_group_long) |>
-            dplyr::filter(ISO.code == iso_code) |>
-            dplyr::mutate(year_char = as.character(as.numeric(year) + 0.5))
+            dplyr::filter(iso == iso_code)
 
     if (identical(marital_group_long, "all women")) {
-        tra <- FPEMglobal.aux::get_country_traj_aw(run_name = run_name, output_dir = output_dir,
-                                                   root_dir = root_dir, iso_code = iso_code)
 
-        ## TESTING: Keep only 10 trajectories
-        if (.testing) tra <- tra[,,1:10]
+        if (.testing) {
+            ## TESTING: Use pre-saved small trajectory arrays
+            tra <- new.env()
+            data("sample_trajectories_all_women", package = "FPPlateaus", verbose = FALSE, envir = tra)
+            tra <- tra$sample_trajectories_all_women[[as.character(iso_code)]]
+        } else {
+            tra <- FPEMglobal.aux::get_country_traj_aw(run_name = run_name, output_dir = output_dir,
+                                                       root_dir = root_dir, iso_code = iso_code)
+        }
 
         denom <- array(denom$count,
                        dim = c(nrow(denom), 1, dim(tra)[[3]]),
-                       dimnames = list(denom$year_char, "count"))
+                       dimnames = list(denom$year, "count"))
         stopifnot(identical(as.numeric(dim(denom)[1]), as.numeric(dim(tra)[1])))
         for (j in seq_len(dim(tra)[2])) {
             tra[dimnames(denom)[[1]], j, ] <-
@@ -88,12 +92,16 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
 
     } else {
 
-        tra <- FPEMglobal.aux::get_country_traj_muw(run_name = run_name, output_dir = output_dir,
+        if (.testing) {
+            ## TESTING: Use pre-saved small trajectory arrays
+            tra <- new.env()
+            data("sample_trajectories_married_women", package = "FPPlateaus", verbose = FALSE, envir = tra)
+            tra <- tra$sample_trajectories_married_women[[as.character(iso_code)]]
+        } else {
+            tra <- FPEMglobal.aux::get_country_traj_muw(run_name = run_name, output_dir = output_dir,
                                      root_dir = root_dir,
                                      iso_code = iso_code)
-
-        ## TESTING: Keep only 10 trajectories
-        if (.testing) tra <- tra[,,1:10]
+        }
 
         tra <-
             aperm(
@@ -263,7 +271,8 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
                                filter_width,
                                denominator_count_filename,
                                add_iso_column = TRUE,
-                               .special_return_trajectories = FALSE) {
+                               .special_return_trajectories = FALSE,
+                               .testing = FALSE) {
 
     smooth_type <- match.arg(smooth_type)
     if (identical(smooth_type, "Annual Difference")) filter_width <- NA
@@ -280,11 +289,8 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
     denom <- FPEMglobal.aux::get_csv_denominators(run_name = run_name, output_dir = output_dir,
                                    root_dir = root_dir,
                                    filename = denominator_count_filename,
-                                   marital_group = marital_group_long,
-                                   clean_col_names = FALSE,
-                                   years_as_midyear = FALSE) |>
-        dplyr::filter(ISO.code == iso_code) |>
-        dplyr::mutate(year_char = as.character(year + 0.5))
+                                   marital_group = marital_group_long) |>
+        dplyr::filter(iso == iso_code)
 
     ## Trajectories
     if (identical(marital_group_long, "all women")) {
@@ -296,7 +302,7 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
 
         denom <- array(denom$count,
                        dim = c(nrow(denom), 1, dim(tra)[[3]]),
-                       dimnames = list(denom$year_char, "count"))
+                       dimnames = list(denom$year, "count"))
         stopifnot(identical(as.numeric(dim(denom)[1]), as.numeric(dim(tra)[1])))
         for (j in seq_len(dim(tra)[2])) {
             tra[dimnames(denom)[[1]], j, ] <-

@@ -1,21 +1,22 @@
-rem @echo off
-rem ECHO.
-rem ECHO.
+@echo off
 
-rem ECHO. ================================================================================
-rem ECHO. DATA
-rem ECHO. ================================================================================
+ECHO.
+ECHO.
 
-rem Rscript -e "setwd('data-raw'); example(source); sourceDir('.')"
-rem if %ERRORLEVEL% GEQ 1 PAUSE
+ECHO. ================================================================================
+ECHO. DATA
+ECHO. ================================================================================
 
-rem ECHO.
-rem ECHO.
-rem ECHO.
-rem ECHO.
-rem ECHO.
-rem ECHO.
-rem ECHO.
+Rscript -e "setwd('data-raw'); example(source); sourceDir('.')"
+if %ERRORLEVEL% GEQ 1 PAUSE
+
+ECHO.
+ECHO.
+ECHO.
+ECHO.
+ECHO.
+ECHO.
+ECHO.
 
 
 ECHO. ================================================================================

@@ -1,14 +1,14 @@
 ##' @export
 make_filepaths_inputs <- function(FPEM_results_dir,
-                                  FPEM_run_names,
+                                  FPEM_results_subdir_names,
                                   denominator_count_filename) {
 
     stopifnot(dir.exists(
-        res_dir_wra <- file.path(FPEM_results_dir, FPEM_run_names$wra)))
+        res_dir_wra <- file.path(FPEM_results_dir, FPEM_results_subdir_names$wra)))
     stopifnot(dir.exists(
-        res_dir_mwra <- file.path(FPEM_results_dir, FPEM_run_names$mwra)))
+        res_dir_mwra <- file.path(FPEM_results_dir, FPEM_results_subdir_names$mwra)))
     stopifnot(dir.exists(
-        res_dir_uwra <- file.path(FPEM_results_dir, FPEM_run_names$uwra)))
+        res_dir_uwra <- file.path(FPEM_results_dir, FPEM_results_subdir_names$uwra)))
 
     return(
         list(FPEM_results_dir = FPEM_results_dir,
@@ -16,7 +16,7 @@ make_filepaths_inputs <- function(FPEM_results_dir,
              res_dir_mwra = res_dir_mwra,
              res_dir_uwra = res_dir_uwra,
              denominator_count_filename = denominator_count_filename,
-             FPEM_run_names = FPEM_run_names))
+             FPEM_results_subdir_names = FPEM_results_subdir_names))
 }
 
 ##' @export

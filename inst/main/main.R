@@ -16,8 +16,6 @@ library(FPPlateaus)
 ###-----------------------------------------------------------------------------
 ### * Directories, Filepaths
 
-## `make_all_results()` will look for these object names by default.
-
 if (nchar(Sys.getenv("SHAREPOINT_PATH_UN"))) {
     S0_sp_dir <- verify_dir(Sys.getenv("SHAREPOINT_PATH_UN"))
 } else S0_sp_dir <- verify_dir(file.path(Sys.getenv("HOME"), "United Nations"))
@@ -56,7 +54,15 @@ for (this_smooth in c("annual_difference", "moving_average", "local_linear")) {
                 "\n----------------------------------------------------------------------\n")
         results_output_dir <-
             make_all_results(smoothing_method = this_smooth,
-                             change_condition_percent = this_change_pc)
+                             change_condition_percent = this_change_pc,
+                                 FPEM_results_dir = S0_FPEM_results_dir,
+                                 FPEM_results_subdirs = list(wra = S0_mar_dir_name_wra,
+                                                             mwra = S0_mar_dir_name_mwra,
+                                                             uwra = S0_mar_dir_name_uwra),
+                                 FPEM_run_names = list(wra = S0_mar_dir_name_wra,
+                                                       mwra = S0_mar_dir_name_mwra,
+                                                       uwra = S0_mar_dir_name_uwra),
+                                 denominator_count_filename = S0_denominator_count_filename)
 
         make_all_plots(results_output_dir)
     }

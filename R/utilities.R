@@ -24,18 +24,12 @@ ensure_new_dir <- function(path) {
 
 ### Regions
 
-##' @export
-get_un_reg <- function(output_dir = S0_FPEM_results_mwra_dir,
-                       run_name = S0_mar_dir_name_mwra) {
-    FPEMglobal.aux::get_used_unpd_regions(run_name = run_name,
-                                          output_dir = output_dir)
-}
-
 ### ISO Codes for 195
 
 ##' @export
-get_iso_all <- function() {
-    iso_all <- base::merge(get_un_reg(), FPEMglobal.aux::get_195_countries()[, "iso", drop = FALSE],
+get_iso_all <- function(output_dir) {
+    iso_all <- base::merge(FPEMglobal.aux::get_used_unpd_regions(output_dir = output_dir),
+                           FPEMglobal.aux::get_195_countries()[, "iso", drop = FALSE],
                        by = "iso",
                        all.y = TRUE, all.x = FALSE)
     iso_all$name[grep("^C.+te d.+Ivoire$", iso_all$name)] <- "Cote d'Ivoire"
@@ -44,8 +38,18 @@ get_iso_all <- function() {
 }
 
 ##' @export
-get_iso <- function(name, iso_all = NULL) {
-    if (is.null(iso_all)) iso_all <- get_iso_all()
+save_iso_all_to_results <- function(iso_all, filepaths_outputs) {
+    saveRDS(iso_all, file = file.path(filepaths_outputs$results_output_dir, "iso_all.rds"))
+}
+
+##' @export
+read_iso_all_from_results <- function(results_output_dir) {
+    readRDS(file = file.path(results_output_dir, "iso_all.rds"))
+}
+
+##' @export
+get_iso <- function(name, iso_all = NULL, output_dir = NULL) {
+    if (is.null(iso_all)) iso_all <- get_iso_all(output_dir = output_dir)
     if (identical(length(name), 1L))
         return(iso_all[iso_all$name == name, "iso"])
     else
@@ -53,8 +57,8 @@ get_iso <- function(name, iso_all = NULL) {
 }
 
 ##' @export
-get_name <- function(iso, iso_all = NULL) {
-    if (is.null(iso_all)) iso_all <- get_iso_all()
+get_name <- function(iso, iso_all = NULL, output_dir = NULL) {
+    if (is.null(iso_all)) iso_all <- get_iso_all(output_dir = output_dir)
     if (identical(length(iso), 1L))
         return(iso_all[iso_all$iso == iso, "name"])
     else
@@ -67,8 +71,8 @@ get_name <- function(iso, iso_all = NULL) {
 get_ssa_regions_ordered <- function() c("Western Africa", "Eastern Africa", "Middle Africa", "Southern Africa")
 
 ##' @export
-get_ssa_countries_ordered_df <- function() {
-    iso_all <- get_iso_all()
+get_ssa_countries_ordered_df <- function(output_dir) {
+    iso_all <- get_iso_all(output_dir = output_dir)
     iso_all[iso_all$sub_saharanafrica == "Yes", c("name", "region")]
     ssa_countries_ordered_df$region <-
         factor(ssa_countries_ordered_df$region, levels = ssa_regions_ordered,
@@ -83,7 +87,7 @@ get_ssa_countries_ordered_df <- function() {
 }
 
 ##' @export
-get_ssa_countries_ordered <- function() get_ssa_countries_ordered_df()$name
+get_ssa_countries_ordered <- function(output_dir) get_ssa_countries_ordered_df(output_dir = output_dir)$name
 
 
 ###-----------------------------------------------------------------------------
