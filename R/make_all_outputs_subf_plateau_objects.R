@@ -61,7 +61,7 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
 
     if (identical(marital_group_long, "all women")) {
 
-        if (.testing) {
+        if (isTRUE(.testing)) {
             ## TESTING: Use pre-saved small trajectory arrays
             tra <- new.env()
             data("sample_trajectories_all_women", package = "FPPlateaus", verbose = FALSE, envir = tra)
@@ -92,7 +92,7 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
 
     } else {
 
-        if (.testing) {
+        if (isTRUE(.testing)) {
             ## TESTING: Use pre-saved small trajectory arrays
             tra <- new.env()
             data("sample_trajectories_married_women", package = "FPPlateaus", verbose = FALSE, envir = tra)
@@ -298,7 +298,7 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
                                    root_dir = root_dir, iso_code = iso_code)
 
         ## TESTING: Keep only 10 trajectories
-        if (.testing) tra <- tra[,,1:10]
+        if (isTRUE(.testing)) tra <- tra[,,1:10]
 
         denom <- array(denom$count,
                        dim = c(nrow(denom), 1, dim(tra)[[3]]),
@@ -326,7 +326,7 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
                                      iso_code = iso_code)
 
         ## TESTING: Keep only 10 trajectories
-        if (.testing) tra <- tra[,,1:10]
+        if (isTRUE(.testing)) tra <- tra[,,1:10]
 
         tra <-
             aperm(

@@ -98,11 +98,11 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## -------* All Women (WRA)
 
-    message("\n\nAll women (WRA)")
+    message("\n\n(1 of 2) .. All women (WRA)")
 
     ## -------** Create Stall Probabilities
 
-    message("\nCreating stall probabilities")
+    message("\n  (1 of 3) .. Creating stall probabilities")
 
     cl <- parallel::makeCluster(6)
     parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
@@ -145,13 +145,35 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Add stall length info
 
-    message("\nCalculating stall lengths")
+    message("\n  (2 of 3) .. Calculating stall lengths")
 
     stall_prob_wra_df <-
         add_stall_lengths(stall_prob_wra_df,
                           min_stall_length = min_stall_length,
                           stall_probability_thresholds = attr(stall_prob_wra_df,
                                                               "stall_probability_thresholds"))
+
+    ## Add level condition indicator
+
+    ## This allows level condition to depend on multiple indicators,
+    ## e.g., level condition for MetDemModMeth could be made to depend
+    ## on Modern.
+
+    ## NOTE: 'stall_prob_group' is already conditioned on the
+    ## indicator levels. For MCP only on MCP, for SDG only on
+    ## MetDemModMeth.
+
+    Level_condition_met <- rep(NA, nrow(stall_prob_wra_df))
+
+    idx <- stall_prob_wra_df$indicator %in% c("Modern", "Unmet")
+    Level_condition_met[idx] <- stall_prob_wra_df[idx, "CP_in_range"]
+
+    idx <- stall_prob_wra_df$indicator == "MetDemModMeth"
+    Level_condition_met[idx] <-
+        stall_prob_wra_df[idx, "CP_in_range"] & stall_prob_wra_df[idx, "MDMM_in_range"]
+
+    stall_prob_wra_df$Level_condition_met <- Level_condition_met
+
 
     ## Add Schoumaker's TFR stalls
 
@@ -160,7 +182,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## -------** Create 'Annual Change' Data
 
-    message("\nCreating annual change data")
+    message("\n  (3 of 3) .. Creating annual change data")
 
     ## Extract and summarize posterior trajectories
 
@@ -213,11 +235,11 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## -------* Married/In-Union Women (MWRA)
 
-    message("\n\nMarried women (MWRA)")
+    message("\n(2 of 2) .. Married women (MWRA)")
 
     ## -------** Create Stall Probabilities
 
-    message("\nCreating stall probabilities")
+    message("\n  (1 of 3) .. Creating stall probabilities")
 
     ## Extract and summarize posterior trajectories
 
@@ -262,11 +284,34 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Add stall length info
 
+    message("\n  (2 of 3) .. Calculating stall lengths")
+
     stall_prob_mwra_df <-
         add_stall_lengths(stall_prob_mwra_df,
                           min_stall_length = min_stall_length,
                           stall_probability_thresholds = attr(stall_prob_mwra_df,
                                                               "stall_probability_thresholds"))
+
+    ## Add level condition indicator
+
+    ## This allows level condition to depend on multiple indicators,
+    ## e.g., level condition for MetDemModMeth could be made to depend
+    ## on Modern.
+
+    ## NOTE: 'stall_prob_group' is already conditioned on the
+    ## indicator levels. For MCP only on MCP, for SDG only on
+    ## MetDemModMeth.
+
+    Level_condition_met <- rep(NA, nrow(stall_prob_mwra_df))
+
+    idx <- stall_prob_mwra_df$indicator %in% c("Modern", "Unmet")
+    Level_condition_met[idx] <- stall_prob_mwra_df[idx, "CP_in_range"]
+
+    idx <- stall_prob_mwra_df$indicator == "MetDemModMeth"
+    Level_condition_met[idx] <-
+        stall_prob_mwra_df[idx, "CP_in_range"] & stall_prob_mwra_df[idx, "MDMM_in_range"]
+
+    stall_prob_mwra_df$Level_condition_met <- Level_condition_met
 
     ## Add Schoumaker's TFR stalls
 
@@ -275,7 +320,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## -------** Create Annual Change Data
 
-    message("\nCreating annual change data")
+    message("\n  (3 of 3) .. Creating annual change data")
 
     ## Extract and summarize posterior trajectories
 
@@ -340,7 +385,8 @@ make_all_results <- function(country_isos_to_process = NULL,
 
 ##' @export
 make_all_plots <- function(results_output_dir,
-                           project_dir = ".", verbose = FALSE) {
+                           project_dir = ".", verbose = FALSE,
+                           .testing = FALSE) {
 
     message("\n\n\nMaking all plots")
 
@@ -376,6 +422,8 @@ make_all_plots <- function(results_output_dir,
 
         stall_probability_thresholds <-
             attr(get(res_obj_name), "stall_probability_thresholds")
+
+        if (isTRUE(.testing)) stall_probability_thresholds <- stall_probability_thresholds[1]
 
         for (x in file.path(filepaths_outputs$results_output_plots_dir, this_marr_group,
                             paste0("stall_prob_",
@@ -426,7 +474,7 @@ make_all_plots <- function(results_output_dir,
 
         message("\nAll countries plots")
 
-        for (prob in attr(get(paste0(this_marr_group, "_all_res_df")), "stall_probability_thresholds")) {
+        for (prob in stall_probability_thresholds) {
             for (yvar in c("stall_prob", "annual_change_50%")) {
                 for (indicator in c("MetDemModMeth", "CP_Modern")) {
 
@@ -483,7 +531,7 @@ make_all_plots <- function(results_output_dir,
             dplyr::arrange(region)
         ssa_isos <- intersect(ssa_isos$iso, get(paste0(this_marr_group, "_all_res_df"))$iso)
 
-        for (prob in attr(get(paste0(this_marr_group, "_all_res_df")), "stall_probability_thresholds")) {
+        for (prob in stall_probability_thresholds) {
             for (yvar in c("stall_prob", "annual_change_50%")) {
                 for (indicator in c("MetDemModMeth", "CP_Modern")) {
 
@@ -535,7 +583,7 @@ make_all_plots <- function(results_output_dir,
 
         message("\nCountry profile plots")
 
-        for (prob in attr(get(paste0(this_marr_group, "_all_res_df")), "stall_probability_thresholds")) {
+        for (prob in stall_probability_thresholds) {
             pdf(file = file.path(filepaths_outputs$results_output_plots_dir, this_marr_group,
                                  paste0("stall_prob_", prob * 100), "country_profiles_all.pdf"),
                 width = 14, height = 10)
@@ -554,7 +602,7 @@ make_all_plots <- function(results_output_dir,
             dplyr::arrange(region)
         ssa_isos <- intersect(ssa_isos$iso, get(paste0(this_marr_group, "_all_res_df"))$iso)
 
-        for (prob in attr(get(paste0(this_marr_group, "_all_res_df")), "stall_probability_thresholds")) {
+        for (prob in stall_probability_thresholds) {
             pdf(file = file.path(filepaths_outputs$results_output_plots_dir, this_marr_group,
                                  paste0("stall_prob_", prob * 100), "country_profiles_all_ssa.pdf"),
                 width = 14, height = 10)
