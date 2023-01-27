@@ -16,28 +16,21 @@ library(FPPlateaus)
 ###-----------------------------------------------------------------------------
 ### * Directories, Filepaths
 
-if (nchar(Sys.getenv("SHAREPOINT_PATH_UN"))) {
-    S0_sp_dir <- verify_dir(Sys.getenv("SHAREPOINT_PATH_UN"))
-} else S0_sp_dir <- verify_dir(file.path(Sys.getenv("HOME"), "United Nations"))
-S0_PDU_dir <- verify_dir(file.path(S0_sp_dir, "DESA-POP - PDU"))
-
 stopifnot(dir.exists(
-    S0_FPEM_results_dir <- file.path(S0_PDU_dir, "FPEM", "Results", "Released", "2022")))
+        S0_FPEM_results_dir <- file.path(Sys.getenv("SHAREPOINT_PDU_FPEM_RESULTS"), "2022")))
 
-S0_mar_dir_name_wra <- "15-49_wra"
-S0_mar_dir_name_mwra <- "15-49_mwra"
-S0_mar_dir_name_uwra <- "15-49_uwra"
+    S0_mar_dir_name_wra <- "15-49_wra"
+    S0_mar_dir_name_mwra <- "15-49_mwra"
+    S0_mar_dir_name_uwra <- "15-49_uwra"
 
-stopifnot(dir.exists(
-    S0_FPEM_results_wra_dir <- file.path(S0_FPEM_results_dir, S0_mar_dir_name_wra)))
-stopifnot(dir.exists(
-    S0_FPEM_results_mwra_dir <- file.path(S0_FPEM_results_dir, S0_mar_dir_name_mwra)))
+    stopifnot(dir.exists(
+        S0_FPEM_results_wra_dir <- file.path(S0_FPEM_results_dir, S0_mar_dir_name_wra)))
+    stopifnot(dir.exists(
+        S0_FPEM_results_mwra_dir <- file.path(S0_FPEM_results_dir, S0_mar_dir_name_mwra)))
+    stopifnot(dir.exists(
+        S0_FPEM_results_uwra_dir <- file.path(S0_FPEM_results_dir, S0_mar_dir_name_uwra)))
 
-S0_rn_wra <- "2022_15-49_wra"
-S0_rn_mwra <- "2022_15-49_mwra"
-S0_rn_uwra <- "2022_15-49_uwra"
-
-S0_denominator_count_filename <- "number_of_women_15-49_20220608.csv"
+    S0_denominator_count_filename <- "number_of_women_15-49_20220608.csv"
 
 
 ###-----------------------------------------------------------------------------
@@ -56,12 +49,9 @@ for (this_smooth in c("annual_difference", "moving_average", "local_linear")) {
             make_all_results(smoothing_method = this_smooth,
                              change_condition_percent = this_change_pc,
                                  FPEM_results_dir = S0_FPEM_results_dir,
-                                 FPEM_results_subdirs = list(wra = S0_mar_dir_name_wra,
-                                                             mwra = S0_mar_dir_name_mwra,
-                                                             uwra = S0_mar_dir_name_uwra),
-                                 FPEM_run_names = list(wra = S0_mar_dir_name_wra,
-                                                       mwra = S0_mar_dir_name_mwra,
-                                                       uwra = S0_mar_dir_name_uwra),
+                                 FPEM_results_subdir_names = list(wra = S0_mar_dir_name_wra,
+                                                                  mwra = S0_mar_dir_name_mwra,
+                                                                  uwra = S0_mar_dir_name_uwra),
                                  denominator_count_filename = S0_denominator_count_filename)
 
         make_all_plots(results_output_dir)
