@@ -55,23 +55,15 @@ get_fp_plateau_countries <- function(x,
         x <- x[x_in_year_range, ]
     }
 
-    ## Add level condition indicator
-    if (any(c("Modern","Unmet") %in% indicator)) x$Level_condition_met <- x$CP_in_range
-    else if (identical(indicator, "MetDemModMeth")) x$Level_condition_met <- x$CP_in_range & x$MDMM_in_range
-
     ## 'FP_plateau' is based on *all* three conditions (level, rate,
-    ## probability). Must do this because the 'stall_prob_group'
-    ## variable is already partly conditioned on the indicator
-    ## level. For MCP only on MCP, for SDG only on MetDemModMeth. With
-    ## the addition of MCP to the level condition for MetDemModMeth
-    ## _after_ generation of main results, we need to apply
-    ## consistency here.
-    x$FP_plateau <- !is.na(x[, stall_prob_group]) & x$Level_condition_met
+    ## probability).
+    stall_prob_wra_df$FP_plateau <-
+        !is.na(stall_prob_wra_df[, stall_prob_group]) & stall_prob_wra_df$Level_condition_met
+
     stall_isos <- unique(x[x$FP_plateau | x$stall_TFR_any, "iso"])
+    if (.filter) x <- x[x$iso %in% stall_isos, ] # includes countries with TFR stalls
 
     attr(x, "stall_probability_thresholds") <- stall_probability
-
-    if (.filter) x <- x[x$iso %in% stall_isos, ] # includes countries with TFR stalls
     return(x)
 }
 

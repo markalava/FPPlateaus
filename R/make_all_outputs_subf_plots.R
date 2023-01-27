@@ -3,13 +3,14 @@
 
 ##----------------------------------------------------------------------
 
+##' @import ggplot2
 ##' @export
 plot_q_diff <- function(df, iso_all, ylim = TRUE, xlim = c(1980, 2020)) {
     gp <- ggplot(data = df, aes(x = year, y = `annual_change_50%`)) +
         geom_hline(yintercept = 0, linetype = 2, col = "blue") +
-        geom_line() +
-        geom_line(aes(y = `annual_change_10%`), linetype = 2) +
-        geom_line(aes(y = `annual_change_90%`), linetype = 2) +
+        geom_line(na.rm = TRUE) +
+        geom_line(aes(y = `annual_change_10%`), linetype = 2, na.rm = TRUE) +
+        geom_line(aes(y = `annual_change_90%`), linetype = 2, na.rm = TRUE) +
         geom_ribbon(aes(ymin = `annual_change_2.5%`, ymax = `annual_change_97.5%`), alpha = 0.2) +
         facet_wrap(~ indicator) +
         labs(title = paste0(iso_all[i, "name"], " (",
@@ -22,6 +23,7 @@ plot_q_diff <- function(df, iso_all, ylim = TRUE, xlim = c(1980, 2020)) {
 
 ##----------------------------------------------------------------------
 
+##' @import ggplot2
 ##' @export
 stall_plot <- function(plot_df, iso_all,
                        min_stall_length = attr(plot_df, "min_stall_length"),
@@ -366,7 +368,7 @@ stall_plot <- function(plot_df, iso_all,
     }
 
     ## Indicator Lines and Ribbons
-    gp <- gp + geom_line(colour = line_colour)
+    gp <- gp + geom_line(colour = line_colour, na.rm = TRUE)
 
     if (yvar %in% c("Total_median", "Modern_median", "Traditional_median",
                     "Unmet_median", "TotalPlusUnmet_median", "TradPlusUnmet_median",
@@ -376,9 +378,9 @@ stall_plot <- function(plot_df, iso_all,
             paste0(yvar_indicator, ".90%") %in% colnames(plot_df)) {
             gp <- gp +
                 geom_line(aes_string(y = paste0("`", yvar_indicator, ".10%", "`")),
-                          linetype = 2, colour = line_colour) +
+                          linetype = 2, colour = line_colour, na.rm = TRUE) +
                 geom_line(aes_string(y = paste0("`", yvar_indicator, ".90%", "`")),
-                          linetype = 2, colour = line_colour)
+                          linetype = 2, colour = line_colour, na.rm = TRUE)
         }
         if (paste0(yvar_indicator, ".2.5%") %in% colnames(plot_df) &&
             paste0(yvar_indicator, ".97.5%") %in% colnames(plot_df)) {
@@ -391,8 +393,8 @@ stall_plot <- function(plot_df, iso_all,
 
     if (identical(yvar, "annual_change_50%")) {
         gp <- gp +
-            geom_line(aes(y = `annual_change_10%`), linetype = 2, colour = line_colour) +
-            geom_line(aes(y = `annual_change_90%`), linetype = 2, colour = line_colour) +
+            geom_line(aes(y = `annual_change_10%`), linetype = 2, colour = line_colour, na.rm = TRUE) +
+            geom_line(aes(y = `annual_change_90%`), linetype = 2, colour = line_colour, na.rm = TRUE) +
             geom_ribbon(aes(ymin = `annual_change_2.5%`, ymax = `annual_change_97.5%`),
                         alpha = 0.15, fill = ribbon_fill)
     }
@@ -402,10 +404,11 @@ stall_plot <- function(plot_df, iso_all,
 
 ##----------------------------------------------------------------------
 
+##' @import ggplot2
 ##' @export
 plot_stall_prob <- function(df, iso_all, ylim = c(0, 1), xlim = c(1980, 2020)) {
     gp <- ggplot(data = df, aes(x = as.numeric(year), y = as.numeric(stall_prob))) +
-        geom_line() +
+        geom_line(na.rm = TRUE) +
         geom_hline(aes(yintercept = 0.5), lty = 2, col = "blue") +
         facet_wrap(~ indicator) +
         labs(title = paste0(iso_all[i, "name"], " (",
@@ -421,6 +424,7 @@ plot_stall_prob <- function(df, iso_all, ylim = c(0, 1), xlim = c(1980, 2020)) {
 
 ## Returns a plot for a single country. 'plot_df' must be for a single country.
 
+##' @import ggplot2
 ##' @export
 country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold) {
 

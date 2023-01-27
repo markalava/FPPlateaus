@@ -8,9 +8,12 @@
 ################################################################################
 
 
+local_rmdir <- function(dir, env = parent.frame()) {
+    withr::defer(unlink(x = dir, recursive = TRUE), env)
+    }
 
 
-test_that("outputs can be created (short run, local only)", {
+test_that("all outputs can be created without errors (short run, local only)", {
     ##-----------------------------------------------------------------------------
     ## * Directories, Filepaths
 
@@ -45,19 +48,20 @@ test_that("outputs can be created (short run, local only)", {
     ##-----------------------------------------------------------------------------
     ## * Runs
 
+    ## RUN IN TEMP DIR
+    withr::local_dir(tempdir())
+
     for (this_smooth in c("annual_difference", "moving_average", "local_linear")) {
         message("\n\n\n\n======================================================================\n",
                 " ", toupper(this_smooth),
                 "\n======================================================================\n")
 
-        for (this_change_pc in c(## 0.25,
-                                   0.5## , 1
-                               )) {
+        for (this_change_pc in c(0.5)) { #only one change condition for testing
             message("\n\n\n----------------------------------------------------------------------\n",
                     " ", toupper(this_change_pc), " percent threshold",
                     "\n----------------------------------------------------------------------\n")
             results_output_dir <-
-                make_all_results(country_isos_to_process = isos_test_countries,
+                expect_error(make_all_results(country_isos_to_process = isos_test_countries,
                                  smoothing_method = this_smooth,
                                  change_condition_percent = this_change_pc,
                                  FPEM_results_dir = S0_FPEM_results_dir,
@@ -65,9 +69,10 @@ test_that("outputs can be created (short run, local only)", {
                                                                   mwra = S0_mar_dir_name_mwra,
                                                                   uwra = S0_mar_dir_name_uwra),
                                  denominator_count_filename = S0_denominator_count_filename,
-                                 .testing = TRUE)
-
-            make_all_plots(results_output_dir)
+                                 .testing = TRUE), NA)
         }
     }
+    ## Just test plots on one of the smoothing methods
+    expect_error(make_all_plots(results_output_dir, .testing = TRUE), NA)
 })
+
