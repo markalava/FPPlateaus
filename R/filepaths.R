@@ -58,7 +58,6 @@ make_filepaths_outputs <- function(project_dir = ".",
                                                  "_", min_stall_length, "_yr",
                                                  "_", change_condition_percent, "pc")))
     results_output_rda_dir <- ensure_new_dir(file.path(results_output_dir, "rda"))
-    results_output_tables_dir <- ensure_new_dir(file.path(results_output_dir, "tables"))
     results_output_plots_dir <- ensure_new_dir(file.path(results_output_dir, "plots"))
 
     return(
@@ -67,14 +66,7 @@ make_filepaths_outputs <- function(project_dir = ".",
              wra_all_res_filepath = file.path(results_output_rda_dir, "wra_all_res_df.rda"),
              mwra_all_res_filepath = file.path(results_output_rda_dir, "mwra_all_res_df.rda"),
              uwra_all_res_filepath = file.path(results_output_rda_dir, "uwra_all_res_df.rda"),
-             results_output_plots_dir = results_output_plots_dir,
-             results_output_tables_dir = results_output_tables_dir,
-             wra_all_results_tables_filepath =
-                 file.path(results_output_tables_dir, "wra_all_results.xlsx"),
-             mwra_all_results_tables_filepath =
-                 file.path(results_output_tables_dir, "mwra_all_results.xlsx"),
-             uwra_all_results_tables_filepath =
-                 file.path(results_output_tables_dir, "uwra_all_results.xlsx")
+             results_output_plots_dir = results_output_plots_dir
              ))
 }
 
