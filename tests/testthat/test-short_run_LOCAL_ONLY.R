@@ -8,11 +8,6 @@
 ################################################################################
 
 
-local_rmdir <- function(dir, env = parent.frame()) {
-    withr::defer(unlink(x = dir, recursive = TRUE), env)
-    }
-
-
 test_that("all outputs can be created without errors (short run, local only)", {
     ##-----------------------------------------------------------------------------
     ## * Directories, Filepaths
@@ -64,6 +59,7 @@ test_that("all outputs can be created without errors (short run, local only)", {
                 expect_error(make_all_results(country_isos_to_process = isos_test_countries,
                                  smoothing_method = this_smooth,
                                  change_condition_percent = this_change_pc,
+                                 results_dir_name = "results_TEST",
                                  FPEM_results_dir = S0_FPEM_results_dir,
                                  FPEM_results_subdir_names = list(wra = S0_mar_dir_name_wra,
                                                                   mwra = S0_mar_dir_name_mwra,

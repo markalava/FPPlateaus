@@ -39,27 +39,35 @@ ECHO. ==========================================================================
 ECHO. INSTALL
 ECHO. ================================================================================
 
-Rscript -e "devtools::install(build_vignettes = FALSE, upgrade = 'never')"
+Rscript -e "devtools::install(build = TRUE, build_vignettes = TRUE, upgrade = 'never')"
 if %ERRORLEVEL% GEQ 1 PAUSE
 
+ECHO.
+ECHO.
+ECHO.
+ECHO.
+ECHO.
+ECHO.
+ECHO.
 
-rem ECHO. ================================================================================
-rem ECHO. TESTS
-rem ECHO. ================================================================================
 
-rem rem Rscript -e "testthat::test_local('tests/testthat')"
-rem rem if %ERRORLEVEL% GEQ 1 PAUSE
+ECHO. ================================================================================
+ECHO. TESTS
+ECHO. ================================================================================
+
+Rscript -e "testthat::test_local('tests/testthat')"
+if %ERRORLEVEL% GEQ 1 PAUSE
 
 rem Rscript -e "testthat::test_package('FPPlateaus')"
 rem if %ERRORLEVEL% GEQ 1 PAUSE
 
-rem ECHO.
-rem ECHO.
-rem ECHO.
-rem ECHO.
-rem ECHO.
-rem ECHO.
-rem ECHO.
+ECHO.
+ECHO.
+ECHO.
+ECHO.
+ECHO.
+ECHO.
+ECHO.
 
 
 ECHO. ================================================================================
