@@ -207,7 +207,7 @@ stall_plot <- function(plot_df, iso_all,
               })
 
     ## Base plot
-    gp <- ggplot(data = plot_df, aes_(x = as.name(xvar), y = as.name(yvar)))
+    gp <- ggplot(data = plot_df, aes(x = .data[[xvar]], y = .data[[yvar]]))
 
     ## Reference lines
     if (add_range_ref_lines) {
@@ -377,16 +377,16 @@ stall_plot <- function(plot_df, iso_all,
         if (paste0(yvar_indicator, ".10%") %in% colnames(plot_df) &&
             paste0(yvar_indicator, ".90%") %in% colnames(plot_df)) {
             gp <- gp +
-                geom_line(aes_string(y = paste0("`", yvar_indicator, ".10%", "`")),
+                geom_line(aes(y = .data[[paste0(yvar_indicator, ".10%")]]),
                           linetype = 2, colour = line_colour, na.rm = TRUE) +
-                geom_line(aes_string(y = paste0("`", yvar_indicator, ".90%", "`")),
+                geom_line(aes(y = .data[[paste0(yvar_indicator, ".90%")]]),
                           linetype = 2, colour = line_colour, na.rm = TRUE)
         }
         if (paste0(yvar_indicator, ".2.5%") %in% colnames(plot_df) &&
             paste0(yvar_indicator, ".97.5%") %in% colnames(plot_df)) {
             gp <- gp +
-                geom_ribbon(aes_string(ymin = paste0("`", yvar_indicator, ".2.5%", "`"),
-                                       ymax = paste0("`", yvar_indicator, ".97.5%", "`")),
+                geom_ribbon(aes(ymin = .data[[paste0(yvar_indicator, ".2.5%")]],
+                                       ymax = .data[[paste0(yvar_indicator, ".97.5%")]]),
                             alpha = 0.15, fill = ribbon_fill)
         }
     }

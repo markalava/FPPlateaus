@@ -17,7 +17,7 @@ Imports:
     FPEMglobal.aux (>= 0.0.5),
     ggforce,
     ggpattern,
-    ggplot2,
+    ggplot2 (> 3.0.0),
     ggpubr,
     gridExtra,
     magrittr,
