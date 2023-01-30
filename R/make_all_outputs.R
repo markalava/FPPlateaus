@@ -44,6 +44,7 @@ make_all_results <- function(country_isos_to_process = NULL,
                              MDMM_range_condition_max = 0.85,
                              year_lim = c(1980, 2022),
                              project_dir = ".",
+                             results_dir_name = "results",
                              FPEM_results_dir,
                              FPEM_results_subdir_names,
                              denominator_count_filename,
@@ -69,6 +70,7 @@ make_all_results <- function(country_isos_to_process = NULL,
     if (is.null(datestamp)) datestamp <- format(Sys.time(), "%Y%m%d")
 
     filepaths_outputs <- make_filepaths_outputs(project_dir = project_dir,
+                                                results_dir_name = results_dir_name,
                            datestamp = datestamp,
                            smoothing_method = smoothing_method,
                            min_stall_length = min_stall_length,
@@ -401,6 +403,7 @@ make_all_plots <- function(results_output_dir,
     ## -------* Constants
 
     filepaths_outputs <- make_filepaths_outputs(project_dir = project_dir,
+                                                results_dir_name = parse_results_output_dir$results_dir_name,
                                                 datestamp = parse_results_output_dir$datestamp,
                                                 smoothing_method = parse_results_output_dir$smoothing_method,
                                                 min_stall_length = parse_results_output_dir$min_stall_length,

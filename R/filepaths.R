@@ -21,6 +21,7 @@ make_filepaths_inputs <- function(FPEM_results_dir,
 
 ##' @export
 make_filepaths_outputs <- function(project_dir = ".",
+                                   results_dir_name = "results",
                                    datestamp,
                                    smoothing_method = c("annual_difference",
                                                         "moving_average",
@@ -52,7 +53,7 @@ make_filepaths_outputs <- function(project_dir = ".",
     ## -------* Paths
 
     results_output_dir <-
-                 ensure_new_dir(file.path(project_dir, "results",
+                 ensure_new_dir(file.path(project_dir, results_dir_name,
                                           paste0("output_", datestamp,
                                                  "_", smoothing_method,
                                                  "_", min_stall_length, "_yr",
@@ -72,9 +73,11 @@ make_filepaths_outputs <- function(project_dir = ".",
 
 ##' @export
 parse_results_output_dir <- function(results_output_dir) {
-    spl <- strsplit(results_output_dir, "_")[[1]]
-    list(datestamp = spl[2],
-         smoothing_method = paste0(spl[3], "_", spl[4]),
-         min_stall_length = as.numeric(spl[5]),
-         change_condition_percent = as.numeric(gsub("pc", "", spl[7])))
+    spl_path <- strsplit(results_output_dir, "/")[[1]]
+    spl_base <- strsplit(basename(results_output_dir), "_")[[1]]
+    list(results_dir_name = spl_path[length(spl_path) - 1],
+        datestamp = spl_base[2],
+         smoothing_method = paste0(spl_base[3], "_", spl_base[4]),
+         min_stall_length = as.numeric(spl_base[5]),
+         change_condition_percent = as.numeric(gsub("pc", "", spl_base[7])))
     }
