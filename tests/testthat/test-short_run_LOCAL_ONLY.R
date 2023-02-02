@@ -56,16 +56,19 @@ test_that("all outputs can be created without errors (short run, local only)", {
                     " ", toupper(this_change_pc), " percent threshold",
                     "\n----------------------------------------------------------------------\n")
             results_output_dir <-
-                expect_error(make_all_results(country_isos_to_process = isos_test_countries,
-                                 smoothing_method = this_smooth,
-                                 change_condition_percent = this_change_pc,
-                                 results_dir_name = "results_TEST",
-                                 FPEM_results_dir = S0_FPEM_results_dir,
-                                 FPEM_results_subdir_names = list(wra = S0_mar_dir_name_wra,
-                                                                  mwra = S0_mar_dir_name_mwra,
-                                                                  uwra = S0_mar_dir_name_uwra),
-                                 denominator_count_filename = S0_denominator_count_filename,
-                                 .testing = TRUE), NA)
+                expect_error(
+                    make_all_results(country_isos_to_process = isos_test_countries,
+                                     smoothing_method = this_smooth,
+                                     change_condition_percent = this_change_pc,
+                                     results_dir_name = "results_TEST",
+                                     FPEM_results_dir = S0_FPEM_results_dir,
+                                     FPEM_results_subdir_names = list(wra = S0_mar_dir_name_wra,
+                                                                      mwra = S0_mar_dir_name_mwra,
+                                                                      uwra = S0_mar_dir_name_uwra),
+                                     denominator_count_filename = S0_denominator_count_filename,
+                                     .testing = TRUE,
+                                     Level_condition_variant = "v1 - SDG Only"),
+                    NA)
         }
     }
     ## Just test plots on one of the smoothing methods
