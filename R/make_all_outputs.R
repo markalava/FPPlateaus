@@ -49,6 +49,7 @@ make_all_results <- function(country_isos_to_process = NULL,
                              FPEM_results_subdir_names,
                              denominator_count_filename,
                              datestamp = NULL,
+                             ncores = parallelly::availableCores(omit = 1),
                              .testing = FALSE,
                              Level_condition_variant = c("v1 - MCP+SDG", "v1 - SDG Only", "v2 - SDG Only")
                                 # 'v1' means level condition only met in years when indicator(s) in range.
@@ -114,7 +115,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     message("\n  (1 of 3) .. Creating stall probabilities")
 
-    cl <- parallel::makeCluster(6)
+    cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
     parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
                                   "smooth_type", "smoothing_method", "min_stall_length",
                                   "denominator_count_filename",
@@ -203,7 +204,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Extract and summarize posterior trajectories
 
-    cl <- parallel::makeCluster(6)
+    cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
     parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
                                             "denominator_count_filename", ".testing"),
                             envir = environment())
@@ -260,7 +261,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Extract and summarize posterior trajectories
 
-    cl <- parallel::makeCluster(6)
+    cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
     parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
                                   "smooth_type",
                                   "denominator_count_filename",
@@ -348,7 +349,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Extract and summarize posterior trajectories
 
-    cl <- parallel::makeCluster(6)
+    cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
     parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
                                             "denominator_count_filename", ".testing"),
                             envir = environment())
@@ -409,7 +410,8 @@ make_all_results <- function(country_isos_to_process = NULL,
 
 ##' @export
 make_all_plots <- function(results_output_dir,
-                           project_dir = ".", verbose = FALSE,
+                           project_dir = ".",
+                           ncores = parallelly::availableCores(omit = 1),
                            .testing = FALSE) {
 
     message("\n\n\nMaking all plots")
@@ -547,8 +549,6 @@ make_all_plots <- function(results_output_dir,
                 for (yvar in c("stall_prob", "annual_change_50%")) {
                     for (indicator in c("MetDemModMeth", "CP_Modern")) {
 
-                        if (verbose) message("\t", prob, " ", yvar, " ", indicator)
-
                         fname <- switch(yvar,
                                         stall_prob = paste0(indicator, "_plateau_probabilities_ssa.pdf"),
                                         `annual_change_50%` = paste0(indicator, "_annual_changes_ssa.pdf"))
@@ -639,10 +639,13 @@ make_all_plots <- function(results_output_dir,
 
     ## -------** Make the Plots
 
+    mar_groups <- c("All women (WRA)" = "wra", "Married women (MWRA)" = "mwra")
 
-    for (this_mar_group in c("wra", "mwra")) {
+    for (i in seq_along(mar_groups)) {
 
-        message("\n\nMarital group: ", this_mar_group)
+        this_mar_group <- mar_groups[i]
+
+        message("\n\n(", i, " of ", length(mar_groups), ") .. ", names(mar_groups)[i])
 
         ## -------*** Inputs
 
@@ -665,7 +668,7 @@ make_all_plots <- function(results_output_dir,
         nplots <- 5L # MUST match the actual number of plots in
                     # 'plot_in_parallel()'.
 
-        cl <- parallel::makeCluster(nplots)
+        cl <- parallel::makeCluster(min(ncores, nplots))
         parallel::clusterExport(cl, varlist = c("this_mar_group", "stall_probability_thresholds",
                                                 "filepaths_outputs", "iso_all"),
                                 envir = environment())
@@ -674,6 +677,7 @@ make_all_plots <- function(results_output_dir,
             pbapply::pblapply(X = 1L:nplots,
                              FUN = "plot_in_parallel", mar_group = this_mar_group,
                              cl = cl)
+        parallel::stopCluster(cl = cl)
     }
 }
 
