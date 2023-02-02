@@ -49,7 +49,13 @@ make_all_results <- function(country_isos_to_process = NULL,
                              FPEM_results_subdir_names,
                              denominator_count_filename,
                              datestamp = NULL,
-                             .testing = FALSE) {
+                             .testing = FALSE,
+                             Level_condition_variant = c("v1 - MCP+SDG", "v1 - SDG Only", "v2 - SDG Only")
+                                # 'v1' means level condition only met in years when indicator(s) in range.
+                                # 'v2' means level condition met from first year indicator in range, and forever thereafter.
+                                # 'MCP+SDG' means SDG level condition depends on levels of MCP and SDG.
+                                # 'SDG Only' means SDG level condition depends only on level of SDG.
+                             ) {
 
     message("\n\n\nMaking all results")
 
@@ -63,6 +69,8 @@ make_all_results <- function(country_isos_to_process = NULL,
     stopifnot(year_lim[2] > year_lim[1])
     stopifnot(year_lim[1] >= 1970)
     stopifnot(year_lim[2] <= 2030)
+
+    Level_condition_variant <- match.arg(Level_condition_variant)
 
 
     ## -------* Constants
@@ -171,8 +179,15 @@ make_all_results <- function(country_isos_to_process = NULL,
     Level_condition_met[idx] <- stall_prob_wra_df[idx, "CP_in_range"]
 
     idx <- stall_prob_wra_df$indicator == "MetDemModMeth"
+    if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
     Level_condition_met[idx] <-
         stall_prob_wra_df[idx, "CP_in_range"] & stall_prob_wra_df[idx, "MDMM_in_range"]
+    } else if (identical(Level_condition_variant, "v1 - SDG Only")) {
+        Level_condition_met[idx] <-
+            stall_prob_wra_df[idx, "CP_in_range"] & stall_prob_wra_df[idx, "MDMM_in_range"]
+    } else if (identical(Level_condition_variant, "v2 - SDG Only")) {
+        stop(Level_condition_variant, " NOT IMPLEMENTED.")
+    }
 
     stall_prob_wra_df$Level_condition_met <- Level_condition_met
 
@@ -310,8 +325,15 @@ make_all_results <- function(country_isos_to_process = NULL,
     Level_condition_met[idx] <- stall_prob_mwra_df[idx, "CP_in_range"]
 
     idx <- stall_prob_mwra_df$indicator == "MetDemModMeth"
+    if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
     Level_condition_met[idx] <-
         stall_prob_mwra_df[idx, "CP_in_range"] & stall_prob_mwra_df[idx, "MDMM_in_range"]
+    } else if (identical(Level_condition_variant, "v1 - SDG Only")) {
+        Level_condition_met[idx] <-
+            stall_prob_mwra_df[idx, "CP_in_range"] & stall_prob_mwra_df[idx, "MDMM_in_range"]
+    } else if (identical(Level_condition_variant, "v2 - SDG Only")) {
+        stop(Level_condition_variant, " NOT IMPLEMENTED.")
+    }
 
     stall_prob_mwra_df$Level_condition_met <- Level_condition_met
 
@@ -414,13 +436,217 @@ make_all_plots <- function(results_output_dir,
 
     ## -------* Plots
 
-    for (this_marr_group in c("wra", "mwra")) {
+    ## -------** Function to Parallelize Over
 
-        message("\n\nMarital group: ", this_marr_group)
+    ## This function makes all the plots -- all relevant code is
+    ## here. It will be passed to 'lapply' below.
 
-        ## -------** Inputs
+    plot_in_parallel <- function(PLOT_NUMBER, mar_group) {
 
-        res_filepath <- filepaths_outputs[[paste0(this_marr_group, "_all_res_filepath")]]
+        if (identical(PLOT_NUMBER, 1L)) {
+
+            ## All FP Indicators Plots
+
+            for (prob in stall_probability_thresholds) {
+                for (yvar in c("stall_prob", "annual_change_50%")) {
+
+                    fname <- switch(yvar,
+                                    stall_prob = "all_indicators_plateau_probabilities.pdf",
+                                    `annual_change_50%` = "all_indicators_annual_changes.pdf")
+
+                    pdf(file = file.path(filepaths_outputs$results_output_plots_dir, mar_group,
+                                         paste0("stall_prob_", prob * 100), fname),
+                        width = 14, height = 12)
+                    for(i in intersect(iso_all$iso, get(paste0(mar_group, "_all_res_df"))$iso)) {
+                        plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")),
+                                                 indicator %in% c("Met Demand", "MetDemModMeth",
+                                                                  "Modern", "Traditional", "Total", "Unmet") &
+                                                 iso == i)
+                        if (nrow(plot_df)) {
+                            gp <- stall_plot(plot_df, iso_all = iso_all,
+                                             yvar = yvar,
+                                             min_stall_length = attr(plot_df, "min_stall_length"),
+                                             CP_range_condition_min = attr(plot_df, "CP_range_condition_min"),
+                                             CP_range_condition_max = attr(plot_df, "CP_range_condition_max"),
+                                             MDMM_range_condition_min = attr(plot_df, "MDMM_range_condition_min"),
+                                             MDMM_range_condition_max = attr(plot_df, "MDMM_range_condition_max"),
+                                             CP_abbrev = "FP Indicator",
+                                             stall_probability_threshold = prob) +
+                                ggplot2::labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
+                            print(gp)
+                        }
+                    }
+                    dev.off()
+                }
+            }
+
+            message("'All FP Indicators' plots finished.")
+
+        } else if (identical(PLOT_NUMBER, 2L)) {
+
+            ## Just One Indicator All Countries
+
+            for (prob in stall_probability_thresholds) {
+                for (yvar in c("stall_prob", "annual_change_50%")) {
+                    for (indicator in c("MetDemModMeth", "CP_Modern")) {
+
+                        fname <- switch(yvar,
+                                        stall_prob = paste0(indicator, "_plateau_probabilities.pdf"),
+                                        `annual_change_50%` = paste0(indicator, "_annual_changes.pdf"))
+                        indicator_abbrev <- switch(indicator,
+                                                   MetDemModMeth = "Met Dem.\nMod. Meth.",
+                                                   CP_Modern = "CP Modern")
+                        indicator_range_abbrev <- switch(indicator,
+                                                         MetDemModMeth = "MDMM",
+                                                         CP_Modern = "MCP")
+                        indicator_value <- switch(indicator,
+                                                  MetDemModMeth = "MetDemModMeth",
+                                                  CP_Modern = "Modern")
+
+                        pl <- lapply(unique(get(paste0(mar_group, "_all_res_df"))$iso), function(z) {
+                            plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")),
+                                                     iso == z & indicator == indicator_value)
+                            stall_plot(plot_df, iso_all = iso_all,
+                                       CP_abbrev = indicator_abbrev,
+                                       CP_not_in_range_abbrev = indicator_range_abbrev,
+                                       facet_by_indicator = TRUE,
+                                       yvar = yvar,
+                                       min_stall_length = attr(plot_df, "min_stall_length"),
+                                       CP_range_condition_min = attr(plot_df, "CP_range_condition_min"),
+                                       CP_range_condition_max = attr(plot_df, "CP_range_condition_max"),
+                                       MDMM_range_condition_min = attr(plot_df, "MDMM_range_condition_min"),
+                                       MDMM_range_condition_max = attr(plot_df, "MDMM_range_condition_max"),
+                                       stall_probability_threshold = prob) +
+                                theme(text = element_text(size=8)) +
+                                labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
+                        })
+                        op_device <- getOption("device"); options(device = pdf); dev.new()
+                        ml <- gridExtra::marrangeGrob(pl, nrow = 3, ncol = 2, top = "")
+                        dev.off(); file.remove("Rplots.pdf"); options(device = op_device)
+                        ggplot2::ggsave(filename = file.path(filepaths_outputs$results_output_plots_dir, mar_group,
+                                                             paste0("stall_prob_", prob * 100),
+                                                             fname),
+                                        ml,
+                                        width = 8.5, height = 11)
+                    }
+                }
+            }
+
+            message("'Just One Indicator All Countries' plots finished.")
+
+        } else if (identical(PLOT_NUMBER, 3L)) {
+
+            ## SSA, only countries with stalls (CP or fertility)
+
+            ssa_isos <- iso_all |>
+                dplyr::filter(sub_saharanafrica == "Yes") |>
+                dplyr::arrange(region)
+            ssa_isos <- intersect(ssa_isos$iso, get(paste0(mar_group, "_all_res_df"))$iso)
+
+            for (prob in stall_probability_thresholds) {
+                for (yvar in c("stall_prob", "annual_change_50%")) {
+                    for (indicator in c("MetDemModMeth", "CP_Modern")) {
+
+                        if (verbose) message("\t", prob, " ", yvar, " ", indicator)
+
+                        fname <- switch(yvar,
+                                        stall_prob = paste0(indicator, "_plateau_probabilities_ssa.pdf"),
+                                        `annual_change_50%` = paste0(indicator, "_annual_changes_ssa.pdf"))
+                        indicator_abbrev <- switch(indicator,
+                                                   MetDemModMeth = "Met Dem.\nMod. Meth.",
+                                                   CP_Modern = "CP Modern")
+                        indicator_range_abbrev <- switch(indicator,
+                                                         MetDemModMeth = "MDMM",
+                                                         CP_Modern = "MCP")
+                        indicator_value <- switch(indicator,
+                                                  MetDemModMeth = "MetDemModMeth",
+                                                  CP_Modern = "Modern")
+
+                        pl <- lapply(ssa_isos, function(z) {
+                            plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")),
+                                                     iso == z & indicator == indicator_value)
+                            stall_plot(plot_df, iso_all = iso_all,
+                                       CP_abbrev = indicator_abbrev,
+                                       CP_not_in_range_abbrev = indicator_range_abbrev,
+                                       facet_by_indicator = TRUE,
+                                       yvar = yvar,
+                                       min_stall_length = attr(plot_df, "min_stall_length"),
+                                       CP_range_condition_min = attr(plot_df, "CP_range_condition_min"),
+                                       CP_range_condition_max = attr(plot_df, "CP_range_condition_max"),
+                                       MDMM_range_condition_min = attr(plot_df, "MDMM_range_condition_min"),
+                                       MDMM_range_condition_max = attr(plot_df, "MDMM_range_condition_max"),
+                                       stall_probability_threshold = prob) +
+                                ggplot2::theme(text = element_text(size=8)) +
+                                ggplot2::labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
+                        })
+                        op_device <- getOption("device"); options(device = pdf); dev.new()
+                        ml <- gridExtra::marrangeGrob(pl, nrow = 3, ncol = 2, top = "")
+                        dev.off(); file.remove("Rplots.pdf"); options(device = op_device)
+                        ggplot2::ggsave(filename = file.path(filepaths_outputs$results_output_plots_dir,
+                                                             mar_group, paste0("stall_prob_", prob * 100),
+                                                             fname),
+                                        ml,
+                                        width = 8.5, height = 11)
+                    }
+                }
+            }
+
+            message("'SSA Countries with cp or Fertility Stalls' plots finished.")
+
+        } else if (identical(PLOT_NUMBER, 4L)) {
+
+            ## Hybrid Stalls / Indicators Plots (Country 'Profiles')
+
+            message("\nCountry profile plots")
+
+            for (prob in stall_probability_thresholds) {
+                pdf(file = file.path(filepaths_outputs$results_output_plots_dir, mar_group,
+                                     paste0("stall_prob_", prob * 100), "country_profiles_all.pdf"),
+                    width = 14, height = 10)
+                for(i in unique(get(paste0(mar_group, "_all_res_df"))$iso)) {
+                    plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")), iso == i)
+                    print(country_profile_plot(plot_df, iso_all = iso_all,
+                                               stall_probability_threshold = prob))
+                }
+                dev.off()
+            }
+
+            message("'Country Profile' plots finished.")
+
+        } else if (identical(PLOT_NUMBER, 5L)) {
+
+            ## Hybrid Stalls / Indicators Plots (Country 'Profiles'), SSA Only
+
+            ssa_isos <- iso_all |>
+                dplyr::filter(sub_saharanafrica == "Yes") |>
+                dplyr::arrange(region)
+            ssa_isos <- intersect(ssa_isos$iso, get(paste0(mar_group, "_all_res_df"))$iso)
+
+            for (prob in stall_probability_thresholds) {
+                pdf(file = file.path(filepaths_outputs$results_output_plots_dir, mar_group,
+                                     paste0("stall_prob_", prob * 100), "country_profiles_all_ssa.pdf"),
+                    width = 14, height = 10)
+                for(i in ssa_isos) {
+                    plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")), iso == i)
+                    print(country_profile_plot(plot_df, iso_all = iso_all,
+                                               stall_probability_threshold = prob))
+                }
+                dev.off()
+            }
+            message("'Country Profile, SSA Only' plots finished.")
+        }
+    }
+
+    ## -------** Make the Plots
+
+
+    for (this_mar_group in c("wra", "mwra")) {
+
+        message("\n\nMarital group: ", this_mar_group)
+
+        ## -------*** Inputs
+
+        res_filepath <- filepaths_outputs[[paste0(this_mar_group, "_all_res_filepath")]]
         res_obj_name <- load(res_filepath)
 
         stall_probability_thresholds <-
@@ -428,193 +654,26 @@ make_all_plots <- function(results_output_dir,
 
         if (isTRUE(.testing)) stall_probability_thresholds <- stall_probability_thresholds[1]
 
-        for (x in file.path(filepaths_outputs$results_output_plots_dir, this_marr_group,
+        for (x in file.path(filepaths_outputs$results_output_plots_dir, this_mar_group,
                             paste0("stall_prob_",
                                    as.numeric(stall_probability_thresholds) * 100))) {
             ensure_new_dir(x)
         }
 
-        ## -------** All FP Indicators Plots
+        ## -------*** Plots
 
-        message("\nAll indicators plots")
+        nplots <- 5L # MUST match the actual number of plots in
+                    # 'plot_in_parallel()'.
 
-        for (prob in stall_probability_thresholds) {
-            for (yvar in c("stall_prob", "annual_change_50%")) {
+        cl <- parallel::makeCluster(nplots)
+        parallel::clusterExport(cl, varlist = c("this_mar_group", "stall_probability_thresholds",
+                                                "filepaths_outputs", "iso_all"),
+                                envir = environment())
 
-                if (verbose) message("\t", prob, " ", yvar)
-
-                fname <- switch(yvar,
-                                stall_prob = "all_indicators_plateau_probabilities.pdf",
-                                `annual_change_50%` = "all_indicators_annual_changes.pdf")
-
-                pdf(file = file.path(filepaths_outputs$results_output_plots_dir, this_marr_group,
-                                     paste0("stall_prob_", prob * 100), fname),
-                    width = 14, height = 12)
-                for(i in intersect(iso_all$iso, get(paste0(this_marr_group, "_all_res_df"))$iso)) {
-                    plot_df <- dplyr::filter(get(paste0(this_marr_group, "_all_res_df")),
-                                             indicator %in% c("Met Demand", "MetDemModMeth",
-                                                              "Modern", "Traditional", "Total", "Unmet") &
-                                             iso == i)
-                    if (nrow(plot_df)) {
-                        gp <- stall_plot(plot_df, iso_all = iso_all,
-                                         yvar = yvar,
-                                         min_stall_length = attr(plot_df, "min_stall_length"),
-                                         CP_range_condition_min = attr(plot_df, "CP_range_condition_min"),
-                                         CP_range_condition_max = attr(plot_df, "CP_range_condition_max"),
-                                         MDMM_range_condition_min = attr(plot_df, "MDMM_range_condition_min"),
-                                         MDMM_range_condition_max = attr(plot_df, "MDMM_range_condition_max"),
-                                         CP_abbrev = "FP Indicator",
-                                         stall_probability_threshold = prob) +
-                            ggplot2::labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
-                        print(gp)
-                    }
-                }
-                dev.off()
-            }
-        }
-
-        ## -------** Just One Indicator All Countries
-
-        message("\nAll countries plots")
-
-        for (prob in stall_probability_thresholds) {
-            for (yvar in c("stall_prob", "annual_change_50%")) {
-                for (indicator in c("MetDemModMeth", "CP_Modern")) {
-
-                    if (verbose) message("\t", prob, " ", yvar, " ", indicator)
-
-                    fname <- switch(yvar,
-                                    stall_prob = paste0(indicator, "_plateau_probabilities.pdf"),
-                                    `annual_change_50%` = paste0(indicator, "_annual_changes.pdf"))
-                    indicator_abbrev <- switch(indicator,
-                                               MetDemModMeth = "Met Dem.\nMod. Meth.",
-                                               CP_Modern = "CP Modern")
-                    indicator_range_abbrev <- switch(indicator,
-                                                     MetDemModMeth = "MDMM",
-                                                     CP_Modern = "MCP")
-                    indicator_value <- switch(indicator,
-                                              MetDemModMeth = "MetDemModMeth",
-                                              CP_Modern = "Modern")
-
-                    pl <- lapply(unique(get(paste0(this_marr_group, "_all_res_df"))$iso), function(z) {
-                        plot_df <- dplyr::filter(get(paste0(this_marr_group, "_all_res_df")),
-                                                 iso == z & indicator == indicator_value)
-                        stall_plot(plot_df, iso_all = iso_all,
-                                   CP_abbrev = indicator_abbrev,
-                                   CP_not_in_range_abbrev = indicator_range_abbrev,
-                                   facet_by_indicator = TRUE,
-                                   yvar = yvar,
-                                   min_stall_length = attr(plot_df, "min_stall_length"),
-                                   CP_range_condition_min = attr(plot_df, "CP_range_condition_min"),
-                                   CP_range_condition_max = attr(plot_df, "CP_range_condition_max"),
-                                   MDMM_range_condition_min = attr(plot_df, "MDMM_range_condition_min"),
-                                   MDMM_range_condition_max = attr(plot_df, "MDMM_range_condition_max"),
-                                   stall_probability_threshold = prob) +
-                            theme(text = element_text(size=8)) +
-                            labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
-                    })
-                    op_device <- getOption("device"); options(device = pdf); dev.new()
-                    ml <- gridExtra::marrangeGrob(pl, nrow = 3, ncol = 2, top = "")
-                    dev.off(); file.remove("Rplots.pdf"); options(device = op_device)
-                    ggplot2::ggsave(filename = file.path(filepaths_outputs$results_output_plots_dir, this_marr_group,
-                                                         paste0("stall_prob_", prob * 100),
-                                                         fname),
-                                    ml,
-                                    width = 8.5, height = 11)
-                }
-            }
-        }
-
-        ## SSA, only countries with stalls (CP or fertility)
-
-        message("\nSSA countries with CP or fertility stalls")
-
-        ssa_isos <- iso_all |>
-            dplyr::filter(sub_saharanafrica == "Yes") |>
-            dplyr::arrange(region)
-        ssa_isos <- intersect(ssa_isos$iso, get(paste0(this_marr_group, "_all_res_df"))$iso)
-
-        for (prob in stall_probability_thresholds) {
-            for (yvar in c("stall_prob", "annual_change_50%")) {
-                for (indicator in c("MetDemModMeth", "CP_Modern")) {
-
-                    if (verbose) message("\t", prob, " ", yvar, " ", indicator)
-
-                    fname <- switch(yvar,
-                                    stall_prob = paste0(indicator, "_plateau_probabilities_ssa.pdf"),
-                                    `annual_change_50%` = paste0(indicator, "_annual_changes_ssa.pdf"))
-                    indicator_abbrev <- switch(indicator,
-                                               MetDemModMeth = "Met Dem.\nMod. Meth.",
-                                               CP_Modern = "CP Modern")
-                    indicator_range_abbrev <- switch(indicator,
-                                                     MetDemModMeth = "MDMM",
-                                                     CP_Modern = "MCP")
-                    indicator_value <- switch(indicator,
-                                              MetDemModMeth = "MetDemModMeth",
-                                              CP_Modern = "Modern")
-
-                    pl <- lapply(ssa_isos, function(z) {
-                        plot_df <- dplyr::filter(get(paste0(this_marr_group, "_all_res_df")),
-                                                 iso == z & indicator == indicator_value)
-                        stall_plot(plot_df, iso_all = iso_all,
-                                   CP_abbrev = indicator_abbrev,
-                                   CP_not_in_range_abbrev = indicator_range_abbrev,
-                                   facet_by_indicator = TRUE,
-                                   yvar = yvar,
-                                   min_stall_length = attr(plot_df, "min_stall_length"),
-                                   CP_range_condition_min = attr(plot_df, "CP_range_condition_min"),
-                                   CP_range_condition_max = attr(plot_df, "CP_range_condition_max"),
-                                   MDMM_range_condition_min = attr(plot_df, "MDMM_range_condition_min"),
-                                   MDMM_range_condition_max = attr(plot_df, "MDMM_range_condition_max"),
-                                   stall_probability_threshold = prob) +
-                            ggplot2::theme(text = element_text(size=8)) +
-                            ggplot2::labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
-                    })
-                    op_device <- getOption("device"); options(device = pdf); dev.new()
-                    ml <- gridExtra::marrangeGrob(pl, nrow = 3, ncol = 2, top = "")
-                    dev.off(); file.remove("Rplots.pdf"); options(device = op_device)
-                    ggplot2::ggsave(filename = file.path(filepaths_outputs$results_output_plots_dir,
-                                                         this_marr_group, paste0("stall_prob_", prob * 100),
-                                                         fname),
-                                    ml,
-                                    width = 8.5, height = 11)
-                }
-            }
-        }
-
-        ## -------** Hybrid Stalls / Indicators Plots (Country 'Profiles')
-
-        message("\nCountry profile plots")
-
-        for (prob in stall_probability_thresholds) {
-            pdf(file = file.path(filepaths_outputs$results_output_plots_dir, this_marr_group,
-                                 paste0("stall_prob_", prob * 100), "country_profiles_all.pdf"),
-                width = 14, height = 10)
-            for(i in unique(get(paste0(this_marr_group, "_all_res_df"))$iso)) {
-                plot_df <- dplyr::filter(get(paste0(this_marr_group, "_all_res_df")), iso == i)
-                print(country_profile_plot(plot_df, iso_all = iso_all,
-                                           stall_probability_threshold = prob))
-            }
-            dev.off()
-        }
-
-        message("\nCountry profile plots, SSA only")
-
-        ssa_isos <- iso_all |>
-            dplyr::filter(sub_saharanafrica == "Yes") |>
-            dplyr::arrange(region)
-        ssa_isos <- intersect(ssa_isos$iso, get(paste0(this_marr_group, "_all_res_df"))$iso)
-
-        for (prob in stall_probability_thresholds) {
-            pdf(file = file.path(filepaths_outputs$results_output_plots_dir, this_marr_group,
-                                 paste0("stall_prob_", prob * 100), "country_profiles_all_ssa.pdf"),
-                width = 14, height = 10)
-            for(i in ssa_isos) {
-                plot_df <- dplyr::filter(get(paste0(this_marr_group, "_all_res_df")), iso == i)
-                print(country_profile_plot(plot_df, iso_all = iso_all,
-                                           stall_probability_threshold = prob))
-            }
-            dev.off()
-        }
+        dump <-
+            pbapply::pblapply(X = 1L:nplots,
+                             FUN = "plot_in_parallel", mar_group = this_mar_group,
+                             cl = cl)
     }
 }
+
