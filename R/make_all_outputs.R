@@ -443,11 +443,6 @@ make_all_plots <- function(results_output_dir,
 
     iso_all <- read_iso_all_from_results(results_output_dir)
 
-    if (.testing) {
-        iso_all <- rbind(iso_all[iso_all$sub_saharanafrica == "Yes", ][1:3,],
-                         iso_all[iso_all$sub_saharanafrica != "Yes", ][1:3,])
-    }
-
 
     ## -------* Plots
 
@@ -686,19 +681,25 @@ make_all_plots <- function(results_output_dir,
         ## -------*** Plots
 
         nplots <- 5L # MUST match the actual number of plots in
-                    # 'plot_in_parallel()'.
+                     # 'plot_in_parallel()'.
 
-        cl <- parallel::makeCluster(min(ncores, nplots))
-        parallel::clusterExport(cl, varlist = c("this_mar_group", "stall_probability_thresholds",
-                                                "filepaths_outputs", "iso_all", "use_ggpattern"),
-                                envir = environment())
+        if (is.null(ncores)) {
+            for (i in seq_len(nplots)) {
+                plot_in_parallel(i, mar_group = this_mar_group, use_ggpattern = this_use_ggpattern)
+            }
+        } else {
+            cl <- parallel::makeCluster(min(ncores, nplots))
+            parallel::clusterExport(cl, varlist = c("this_mar_group", "stall_probability_thresholds",
+                                                    "filepaths_outputs", "iso_all", "use_ggpattern"),
+                                    envir = environment())
 
-        dump <-
-            pbapply::pblapply(X = 1L:nplots,
-                              FUN = "plot_in_parallel",
-                              mar_group = this_mar_group, use_ggpattern = this_use_ggpattern,
-                             cl = cl)
-        parallel::stopCluster(cl = cl)
+            dump <-
+                pbapply::pblapply(X = 1L:nplots,
+                                  FUN = "plot_in_parallel",
+                                  mar_group = this_mar_group, use_ggpattern = this_use_ggpattern,
+                                  cl = cl)
+            parallel::stopCluster(cl = cl)
+        }
     }
 }
 
