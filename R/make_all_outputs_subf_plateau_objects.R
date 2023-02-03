@@ -543,12 +543,9 @@ add_stall_lengths <- function(df, min_stall_length,
     ## -------** Add Lengths
 
     if (length(unique(df$iso)) * length(unique(df$indicator)) > 4 * cores) {
-        ## fr <- sys.nframe()
         cl <- parallel::makeCluster(cores)
         parallel::clusterExport(cl, varlist = c("stall_column_names", "min_stall_length"),
-                                envir = ## sys.frame(fr)
-                                    environment()
-                      )
+                                envir = environment())
         on.exit(parallel::stopCluster(cl = cl), add = TRUE, after = FALSE)
     } else cl <- NULL # cl NULL means process in serial
 
@@ -570,6 +567,11 @@ add_stall_lengths <- function(df, min_stall_length,
     attr(tmp, "min_stall_length") <- min_stall_length
     return(tmp)
 }
+
+##----------------------------------------------------------------------
+
+##' @export
+add_level_condition_indicators <- function(df) {}
 
 ##----------------------------------------------------------------------
 

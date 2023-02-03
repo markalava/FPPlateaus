@@ -162,7 +162,8 @@ make_all_results <- function(country_isos_to_process = NULL,
         add_stall_lengths(stall_prob_wra_df,
                           min_stall_length = min_stall_length,
                           stall_probability_thresholds = attr(stall_prob_wra_df,
-                                                              "stall_probability_thresholds"))
+                                                              "stall_probability_thresholds"),
+                          cores = ncores)
 
     ## Add level condition indicator
 
@@ -174,23 +175,31 @@ make_all_results <- function(country_isos_to_process = NULL,
     ## indicator levels. For MCP only on MCP, for SDG only on
     ## MetDemModMeth.
 
-    Level_condition_met <- rep(NA, nrow(stall_prob_wra_df))
+    if (identical(Level_condition_variant, "v2 - SDG Only")) {
 
-    idx <- stall_prob_wra_df$indicator %in% c("Modern", "Unmet")
-    Level_condition_met[idx] <- stall_prob_wra_df[idx, "CP_in_range"]
+       ## stall_prob_wra_df <-
 
-    idx <- stall_prob_wra_df$indicator == "MetDemModMeth"
-    if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
-    Level_condition_met[idx] <-
-        stall_prob_wra_df[idx, "CP_in_range"] & stall_prob_wra_df[idx, "MDMM_in_range"]
-    } else if (identical(Level_condition_variant, "v1 - SDG Only")) {
-        Level_condition_met[idx] <-
-            stall_prob_wra_df[idx, "CP_in_range"] & stall_prob_wra_df[idx, "MDMM_in_range"]
-    } else if (identical(Level_condition_variant, "v2 - SDG Only")) {
-        stop(Level_condition_variant, " NOT IMPLEMENTED.")
+    } else {
+
+        Level_condition_met <- rep(NA, nrow(stall_prob_wra_df))
+
+        idx <- stall_prob_wra_df$indicator %in% c("Modern", "Unmet")
+        Level_condition_met[idx] <- stall_prob_wra_df[idx, "CP_in_range"]
+
+        idx <- stall_prob_wra_df$indicator == "MetDemModMeth"
+        if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
+            Level_condition_met[idx] <-
+                stall_prob_wra_df[idx, "CP_in_range"] & stall_prob_wra_df[idx, "MDMM_in_range"]
+        } else if (identical(Level_condition_variant, "v1 - SDG Only")) {
+            Level_condition_met[idx] <-
+                stall_prob_wra_df[idx, "CP_in_range"] & stall_prob_wra_df[idx, "MDMM_in_range"]
+        } else if (identical(Level_condition_variant, "v2 - SDG Only")) {
+            Level_condition_met[idx] <-
+
+                }
+
+        stall_prob_wra_df$Level_condition_met <- Level_condition_met
     }
-
-    stall_prob_wra_df$Level_condition_met <- Level_condition_met
 
 
     ## Add Schoumaker's TFR stalls
@@ -308,7 +317,8 @@ make_all_results <- function(country_isos_to_process = NULL,
         add_stall_lengths(stall_prob_mwra_df,
                           min_stall_length = min_stall_length,
                           stall_probability_thresholds = attr(stall_prob_mwra_df,
-                                                              "stall_probability_thresholds"))
+                                                              "stall_probability_thresholds"),
+                          cores = ncores)
 
     ## Add level condition indicator
 
