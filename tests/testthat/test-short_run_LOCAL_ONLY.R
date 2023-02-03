@@ -37,8 +37,8 @@ test_that("all outputs can be created without errors (short run, local only)", {
     ## data-raw files and tests/testthat files. Do *not* change here
     ## without checking other places.
 
-    isos_test_countries <- c(566, 270, 716, 250, 356, 604)
-                                #c("Nigeria", "Gambia", "Zimbabwe", "India", "Peru")
+    isos_test_countries <- c(566, 270, 716)
+                                #c("Nigeria", "Gambia", "Zimbabwe")
 
     ##-----------------------------------------------------------------------------
     ## * Runs

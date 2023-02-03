@@ -167,37 +167,9 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Add level condition indicator
 
-    ## This allows level condition to depend on multiple indicators,
-    ## e.g., level condition for MetDemModMeth could be made to depend
-    ## on Modern.
-
-    ## NOTE: 'stall_prob_group' is already conditioned on the
-    ## indicator levels. For MCP only on MCP, for SDG only on
-    ## MetDemModMeth.
-
-    if (identical(Level_condition_variant, "v2 - SDG Only")) {
-
-      stall_prob_wra_df <- add_level_condition_indicators(stall_prob_wra_df)
-
-    } else {
-
-        Level_condition_met <- rep(NA, nrow(stall_prob_wra_df))
-
-        idx <- stall_prob_wra_df$indicator %in% c("Modern", "Unmet")
-        Level_condition_met[idx] <- stall_prob_wra_df[idx, "CP_in_range"]
-
-        idx <- stall_prob_wra_df$indicator == "MetDemModMeth"
-        if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
-            Level_condition_met[idx] <-
-                stall_prob_wra_df[idx, "CP_in_range"] & stall_prob_wra_df[idx, "MDMM_in_range"]
-        } else if (identical(Level_condition_variant, "v1 - SDG Only")) {
-            Level_condition_met[idx] <-
-                stall_prob_wra_df[idx, "CP_in_range"] & stall_prob_wra_df[idx, "MDMM_in_range"]
-        }
-
-        stall_prob_wra_df$Level_condition_met <- Level_condition_met
-    }
-
+    stall_prob_wra_df <-
+        add_level_condition_indicators(stall_prob_wra_df,
+                                       Level_condition_variant = Level_condition_variant)
 
     ## Add Schoumaker's TFR stalls
 
@@ -319,31 +291,9 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Add level condition indicator
 
-    ## This allows level condition to depend on multiple indicators,
-    ## e.g., level condition for MetDemModMeth could be made to depend
-    ## on Modern.
-
-    ## NOTE: 'stall_prob_group' is already conditioned on the
-    ## indicator levels. For MCP only on MCP, for SDG only on
-    ## MetDemModMeth.
-
-    Level_condition_met <- rep(NA, nrow(stall_prob_mwra_df))
-
-    idx <- stall_prob_mwra_df$indicator %in% c("Modern", "Unmet")
-    Level_condition_met[idx] <- stall_prob_mwra_df[idx, "CP_in_range"]
-
-    idx <- stall_prob_mwra_df$indicator == "MetDemModMeth"
-    if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
-    Level_condition_met[idx] <-
-        stall_prob_mwra_df[idx, "CP_in_range"] & stall_prob_mwra_df[idx, "MDMM_in_range"]
-    } else if (identical(Level_condition_variant, "v1 - SDG Only")) {
-        Level_condition_met[idx] <-
-            stall_prob_mwra_df[idx, "CP_in_range"] & stall_prob_mwra_df[idx, "MDMM_in_range"]
-    } else if (identical(Level_condition_variant, "v2 - SDG Only")) {
-        stop(Level_condition_variant, " NOT IMPLEMENTED.")
-    }
-
-    stall_prob_mwra_df$Level_condition_met <- Level_condition_met
+    stall_prob_mwra_df <-
+        add_level_condition_indicators(stall_prob_mwra_df,
+                                       Level_condition_variant = Level_condition_variant)
 
     ## Add Schoumaker's TFR stalls
 

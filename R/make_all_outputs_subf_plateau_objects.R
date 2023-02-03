@@ -571,12 +571,51 @@ add_stall_lengths <- function(df, min_stall_length,
 ##----------------------------------------------------------------------
 
 ##' @export
-add_level_condition_indicators <- function(df) {
-    cat("hello!")
+add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 - MCP+SDG", "v1 - SDG Only", "v2 - SDG Only")) {
 
-    browser()
+    ## This allows level condition to depend on multiple indicators,
+    ## e.g., level condition for MetDemModMeth could be made to depend
+    ## on Modern.
 
-    cat("bye!")
+    ## NOTE: 'stall_prob_group' is already conditioned on the
+    ## indicator levels. For MCP only on MCP, for SDG only on
+    ## MetDemModMeth.
+
+    Level_condition_variant <- match.arg(Level_condition_variant)
+
+    Level_condition_met <- rep(NA, nrow(df))
+
+    idx <- df$indicator %in% c("Modern", "Unmet")
+    Level_condition_met[idx] <- df[idx, "CP_in_range"]
+
+    idx <- df$indicator == "MetDemModMeth"
+    if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
+        Level_condition_met[idx] <-
+            df[idx, "CP_in_range"] & df[idx, "MDMM_in_range"]
+    } else if (Level_condition_variant %in% c("v1 - SDG Only", "v2 - SDG Only")) {
+        Level_condition_met[idx] <-
+            df[idx, "CP_in_range"] & df[idx, "MDMM_in_range"]
+    }
+
+    df$Level_condition_met <- Level_condition_met
+
+    if (identical(Level_condition_variant, "v2 - SDG Only")) {
+
+        tmp <- df |>
+            dplyr::select(iso, indicator, year, Level_condition_met) |>
+            dplyr::filter(Level_condition_met) |>
+            dplyr::group_by(iso, indicator) |>
+            dplyr::summarize(min_year = min(year))
+
+        tmp <- dplyr::left_join(df[c("iso", "indicator", "year", "Level_condition_met")],
+                                tmp,
+                                by = c("iso", "indicator"))
+        tmp <- !is.na(tmp$Level_condition_met) & tmp$year >= tmp$min_year
+        df[tmp, "Level_condition_met"] <- TRUE
+
+    }
+
+    return(df)
 }
 
 ##----------------------------------------------------------------------
