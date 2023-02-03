@@ -67,11 +67,14 @@ test_that("all outputs can be created without errors (short run, local only)", {
                                                                       uwra = S0_mar_dir_name_uwra),
                                      denominator_count_filename = S0_denominator_count_filename,
                                      .testing = TRUE,
-                                     Level_condition_variant = "v1 - SDG Only"),
+                                     Level_condition_variant = "v2 - SDG Only"),
                     NA)
         }
     }
     ## Just test plots on one of the smoothing methods
     expect_error(make_all_plots(results_output_dir, .testing = TRUE), NA)
+
+    ## Without ggpattern
+    expect_error(make_all_plots(results_output_dir, use_ggpattern = FALSE, .testing = TRUE), NA)
 })
 

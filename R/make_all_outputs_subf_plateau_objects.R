@@ -571,7 +571,13 @@ add_stall_lengths <- function(df, min_stall_length,
 ##----------------------------------------------------------------------
 
 ##' @export
-add_level_condition_indicators <- function(df) {}
+add_level_condition_indicators <- function(df) {
+    cat("hello!")
+
+    browser()
+
+    cat("bye!")
+}
 
 ##----------------------------------------------------------------------
 

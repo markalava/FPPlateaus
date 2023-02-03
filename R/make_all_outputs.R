@@ -177,7 +177,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     if (identical(Level_condition_variant, "v2 - SDG Only")) {
 
-       ## stall_prob_wra_df <-
+      stall_prob_wra_df <- add_level_condition_indicators(stall_prob_wra_df)
 
     } else {
 
@@ -193,10 +193,7 @@ make_all_results <- function(country_isos_to_process = NULL,
         } else if (identical(Level_condition_variant, "v1 - SDG Only")) {
             Level_condition_met[idx] <-
                 stall_prob_wra_df[idx, "CP_in_range"] & stall_prob_wra_df[idx, "MDMM_in_range"]
-        } else if (identical(Level_condition_variant, "v2 - SDG Only")) {
-            Level_condition_met[idx] <-
-
-                }
+        }
 
         stall_prob_wra_df$Level_condition_met <- Level_condition_met
     }
