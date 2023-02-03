@@ -144,15 +144,21 @@ make_all_results <- function(country_isos_to_process = NULL,
         within(stall_prob_wra_df,
                in_time_window <- year >= min(year_lim) & year <= max(year_lim))
 
-    ## Add Single-year Stall Indicators
+    ## Add level condition indicator
 
     stall_prob_wra_df <-
-        add_stall_indicators_probabilities(stall_prob_wra_df,
-                                           stall_probability_thresholds = stall_probability_thresholds,
+        add_level_condition_indicators(stall_prob_wra_df,
+                                       Level_condition_variant = Level_condition_variant,
                                            CP_range_condition_min = CP_range_condition_min,
                                            CP_range_condition_max = CP_range_condition_max,
                                            MDMM_range_condition_min = MDMM_range_condition_min,
                                            MDMM_range_condition_max = MDMM_range_condition_max)
+
+    ## Add Single-year Stall Indicators
+
+    stall_prob_wra_df <-
+        add_stall_indicators_probabilities(stall_prob_wra_df,
+                                           stall_probability_thresholds = stall_probability_thresholds)
 
     ## Add stall length info
 
@@ -164,12 +170,6 @@ make_all_results <- function(country_isos_to_process = NULL,
                           stall_probability_thresholds = attr(stall_prob_wra_df,
                                                               "stall_probability_thresholds"),
                           cores = ncores)
-
-    ## Add level condition indicator
-
-    stall_prob_wra_df <-
-        add_level_condition_indicators(stall_prob_wra_df,
-                                       Level_condition_variant = Level_condition_variant)
 
     ## Add Schoumaker's TFR stalls
 
@@ -268,15 +268,21 @@ make_all_results <- function(country_isos_to_process = NULL,
         within(stall_prob_mwra_df,
                in_time_window <- year >= min(year_lim) & year <= max(year_lim))
 
-    ## Add Single-year Stall Indicators
+    ## Add level condition indicator
 
     stall_prob_mwra_df <-
-        add_stall_indicators_probabilities(stall_prob_mwra_df,
-                                           stall_probability_thresholds = stall_probability_thresholds,
+        add_level_condition_indicators(stall_prob_mwra_df,
+                                       Level_condition_variant = Level_condition_variant,
                                            CP_range_condition_min = CP_range_condition_min,
                                            CP_range_condition_max = CP_range_condition_max,
                                            MDMM_range_condition_min = MDMM_range_condition_min,
                                            MDMM_range_condition_max = MDMM_range_condition_max)
+
+    ## Add Single-year Stall Indicators
+
+    stall_prob_mwra_df <-
+        add_stall_indicators_probabilities(stall_prob_mwra_df,
+                                           stall_probability_thresholds = stall_probability_thresholds)
 
     ## Add stall length info
 
@@ -288,12 +294,6 @@ make_all_results <- function(country_isos_to_process = NULL,
                           stall_probability_thresholds = attr(stall_prob_mwra_df,
                                                               "stall_probability_thresholds"),
                           cores = ncores)
-
-    ## Add level condition indicator
-
-    stall_prob_mwra_df <-
-        add_level_condition_indicators(stall_prob_mwra_df,
-                                       Level_condition_variant = Level_condition_variant)
 
     ## Add Schoumaker's TFR stalls
 

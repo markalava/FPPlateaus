@@ -435,36 +435,86 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
 ##----------------------------------------------------------------------
 
 ##' @export
-add_stall_indicators_probabilities <- function(df,
-                                               stall_probability_thresholds,
+add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 - MCP+SDG", "v1 - SDG Only", "v2 - SDG Only"),
                                                 CP_range_condition_min,
                                                 CP_range_condition_max,
                                                 MDMM_range_condition_min,
                                                 MDMM_range_condition_max) {
 
+    ## This allows level condition to depend on multiple indicators,
+    ## e.g., level condition for MetDemModMeth could be made to depend
+    ## on Modern.
+
+    ## NOTE: 'stall_prob_group' is already conditioned on the
+    ## indicator levels. For MCP only on MCP, for SDG only on
+    ## MetDemModMeth.
+
+    Level_condition_variant <- match.arg(Level_condition_variant)
+
     df <- dplyr::mutate(df,
                         CP_in_range = Modern_median > CP_range_condition_min &
                             Modern_median <= CP_range_condition_max,
                         MDMM_in_range = MetDemModMeth_median > MDMM_range_condition_min &
-                            MetDemModMeth_median <= MDMM_range_condition_max
-                        )
-    idx <- !is.na(df$stall_prob)
+                            MetDemModMeth_median <= MDMM_range_condition_max)
+
+    Level_condition_met <- rep(NA, nrow(df))
+
+    idx <- df$indicator %in% c("Modern", "Unmet")
+    Level_condition_met[idx] <- df[idx, "CP_in_range"]
+
+    idx <- df$indicator == "MetDemModMeth"
+    if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
+        Level_condition_met[idx] <-
+            df[idx, "CP_in_range"] & df[idx, "MDMM_in_range"]
+    } else if (Level_condition_variant %in% c("v1 - SDG Only", "v2 - SDG Only")) {
+        Level_condition_met[idx] <-
+            df[idx, "CP_in_range"] & df[idx, "MDMM_in_range"]
+    }
+
+    df$Level_condition_met <- Level_condition_met
+
+    if (identical(Level_condition_variant, "v2 - SDG Only")) {
+
+        tmp <- df |>
+            dplyr::select(iso, indicator, year, Level_condition_met) |>
+            dplyr::filter(Level_condition_met) |>
+            dplyr::group_by(iso, indicator) |>
+            dplyr::summarize(min_year = min(year))
+
+        tmp <- dplyr::left_join(df[c("iso", "indicator", "year", "Level_condition_met")],
+                                tmp,
+                                by = c("iso", "indicator"))
+        tmp <- !is.na(tmp$Level_condition_met) & tmp$year >= tmp$min_year
+        df[tmp, "Level_condition_met"] <- TRUE
+
+    }
+
+    row.names(df) <- NULL
+    attr(df, "CP_range_condition_min") <- CP_range_condition_min
+    attr(df, "CP_range_condition_max") <- CP_range_condition_max
+    attr(df, "MDMM_range_condition_min") <- MDMM_range_condition_min
+    attr(df, "MDMM_range_condition_max") <- MDMM_range_condition_max
+
+    return(df)
+}
+
+##----------------------------------------------------------------------
+
+##' @export
+add_stall_indicators_probabilities <- function(df, stall_probability_thresholds) {
+    idx <- !is.na(df$stall_prob) & !is.na(df$Level_condition_met)
     for (p in stall_probability_thresholds) {
         df[, paste0("stall_year_prob_", p)] <- FALSE
         df[idx, ][df[idx, ]$indicator %in% c("Modern", "Unmet") &
-                        df[idx, ]$CP_in_range & df[idx, ]$stall_prob >= p,
+                        df[idx, ]$Level_condition_met & df[idx, ]$stall_prob >= p,
            paste0("stall_year_prob_", p)] <- TRUE
         df[idx, ][df[idx, ]$indicator == "MetDemModMeth" &
-                        df[idx, ]$MDMM_in_range & df[idx, ]$stall_prob >= p,
+                        df[idx, ]$Level_condition_met & df[idx, ]$stall_prob >= p,
            paste0("stall_year_prob_", p)] <- TRUE
     }
 
     row.names(df) <- NULL
     attr(df, "stall_probability_thresholds") <- stall_probability_thresholds
-    attr(df, "CP_range_condition_min") <- CP_range_condition_min
-    attr(df, "CP_range_condition_max") <- CP_range_condition_max
-    attr(df, "MDMM_range_condition_min") <- MDMM_range_condition_min
-    attr(df, "MDMM_range_condition_max") <- MDMM_range_condition_max
 
     return(df)
 }
@@ -566,56 +616,6 @@ add_stall_lengths <- function(df, min_stall_length,
                          attributes(df)[!names(attributes(df)) %in% names(attributes(tmp))])
     attr(tmp, "min_stall_length") <- min_stall_length
     return(tmp)
-}
-
-##----------------------------------------------------------------------
-
-##' @export
-add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 - MCP+SDG", "v1 - SDG Only", "v2 - SDG Only")) {
-
-    ## This allows level condition to depend on multiple indicators,
-    ## e.g., level condition for MetDemModMeth could be made to depend
-    ## on Modern.
-
-    ## NOTE: 'stall_prob_group' is already conditioned on the
-    ## indicator levels. For MCP only on MCP, for SDG only on
-    ## MetDemModMeth.
-
-    Level_condition_variant <- match.arg(Level_condition_variant)
-
-    Level_condition_met <- rep(NA, nrow(df))
-
-    idx <- df$indicator %in% c("Modern", "Unmet")
-    Level_condition_met[idx] <- df[idx, "CP_in_range"]
-
-    idx <- df$indicator == "MetDemModMeth"
-    if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
-        Level_condition_met[idx] <-
-            df[idx, "CP_in_range"] & df[idx, "MDMM_in_range"]
-    } else if (Level_condition_variant %in% c("v1 - SDG Only", "v2 - SDG Only")) {
-        Level_condition_met[idx] <-
-            df[idx, "CP_in_range"] & df[idx, "MDMM_in_range"]
-    }
-
-    df$Level_condition_met <- Level_condition_met
-
-    if (identical(Level_condition_variant, "v2 - SDG Only")) {
-
-        tmp <- df |>
-            dplyr::select(iso, indicator, year, Level_condition_met) |>
-            dplyr::filter(Level_condition_met) |>
-            dplyr::group_by(iso, indicator) |>
-            dplyr::summarize(min_year = min(year))
-
-        tmp <- dplyr::left_join(df[c("iso", "indicator", "year", "Level_condition_met")],
-                                tmp,
-                                by = c("iso", "indicator"))
-        tmp <- !is.na(tmp$Level_condition_met) & tmp$year >= tmp$min_year
-        df[tmp, "Level_condition_met"] <- TRUE
-
-    }
-
-    return(df)
 }
 
 ##----------------------------------------------------------------------
