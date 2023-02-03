@@ -37,8 +37,8 @@ test_that("all outputs can be created without errors (short run, local only)", {
     ## data-raw files and tests/testthat files. Do *not* change here
     ## without checking other places.
 
-    isos_test_countries <- c(566, 270, 716)
-                                #c("Nigeria", "Gambia", "Zimbabwe")
+    isos_test_countries <- c(566, 270, 716, 250, 356, 604)
+                                #c("Nigeria", "Gambia", "Zimbabwe", "India", "Peru")
 
     ##-----------------------------------------------------------------------------
     ## * Runs
@@ -73,5 +73,10 @@ test_that("all outputs can be created without errors (short run, local only)", {
     }
     ## Just test plots on one of the smoothing methods
     expect_error(make_all_plots(results_output_dir, .testing = TRUE), NA)
+
+    ## Without ggpattern
+    expect_error(make_all_plots(results_output_dir,
+                                use_ggpattern = FALSE, ncores = NULL, .testing = TRUE),
+                 NA)
 })
 

@@ -319,7 +319,7 @@ stall_plot <- function(plot_df, iso_all,
                                         aes(x = x, y = y, group = id,
                                             fill = "Level condition\nnot met"),
                                         fill = "darkgray",
-                                        colour = "darkgray",
+                                        colour = NA,
                                         alpha = fill_alpha)
             }
         }
@@ -399,7 +399,7 @@ stall_plot <- function(plot_df, iso_all,
                                                     pattern = CP_abbrev),
                                                 alpha = fill_alpha)
         } else {
-            gp <- gp + ggpattern::geom_polygon_pattern(data =  plot_df_fp_stall,
+            gp <- gp + geom_polygon(data =  plot_df_fp_stall,
                                                 aes(x = x, y = y2, group = id, fill = CP_abbrev),
                                                 alpha = fill_alpha)
         }
