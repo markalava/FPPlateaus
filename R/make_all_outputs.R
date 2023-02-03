@@ -411,6 +411,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 ##' @export
 make_all_plots <- function(results_output_dir,
                            project_dir = ".",
+                           use_ggpattern = TRUE,
                            ncores = parallelly::availableCores(omit = 1),
                            .testing = FALSE) {
 
@@ -435,6 +436,11 @@ make_all_plots <- function(results_output_dir,
 
     iso_all <- read_iso_all_from_results(results_output_dir)
 
+    if (.testing) {
+        iso_all <- rbind(iso_all[iso_all$sub_saharanafrica == "Yes", ][1:3,],
+                         iso_all[iso_all$sub_saharanafrica != "Yes", ][1:3,])
+    }
+
 
     ## -------* Plots
 
@@ -443,7 +449,7 @@ make_all_plots <- function(results_output_dir,
     ## This function makes all the plots -- all relevant code is
     ## here. It will be passed to 'lapply' below.
 
-    plot_in_parallel <- function(PLOT_NUMBER, mar_group) {
+    plot_in_parallel <- function(PLOT_NUMBER, mar_group, use_ggpattern) {
 
         if (identical(PLOT_NUMBER, 1L)) {
 
@@ -473,7 +479,8 @@ make_all_plots <- function(results_output_dir,
                                              MDMM_range_condition_min = attr(plot_df, "MDMM_range_condition_min"),
                                              MDMM_range_condition_max = attr(plot_df, "MDMM_range_condition_max"),
                                              CP_abbrev = "FP Indicator",
-                                             stall_probability_threshold = prob) +
+                                             stall_probability_threshold = prob,
+                                             use_ggpattern = use_ggpattern) +
                                 ggplot2::labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
                             print(gp)
                         }
@@ -518,7 +525,8 @@ make_all_plots <- function(results_output_dir,
                                        CP_range_condition_max = attr(plot_df, "CP_range_condition_max"),
                                        MDMM_range_condition_min = attr(plot_df, "MDMM_range_condition_min"),
                                        MDMM_range_condition_max = attr(plot_df, "MDMM_range_condition_max"),
-                                       stall_probability_threshold = prob) +
+                                       stall_probability_threshold = prob,
+                                       use_ggpattern = use_ggpattern) +
                                 theme(text = element_text(size=8)) +
                                 labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
                         })
@@ -575,7 +583,8 @@ make_all_plots <- function(results_output_dir,
                                        CP_range_condition_max = attr(plot_df, "CP_range_condition_max"),
                                        MDMM_range_condition_min = attr(plot_df, "MDMM_range_condition_min"),
                                        MDMM_range_condition_max = attr(plot_df, "MDMM_range_condition_max"),
-                                       stall_probability_threshold = prob) +
+                                       stall_probability_threshold = prob,
+                                       use_ggpattern = use_ggpattern) +
                                 ggplot2::theme(text = element_text(size=8)) +
                                 ggplot2::labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
                         })
@@ -606,7 +615,8 @@ make_all_plots <- function(results_output_dir,
                 for(i in unique(get(paste0(mar_group, "_all_res_df"))$iso)) {
                     plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")), iso == i)
                     print(country_profile_plot(plot_df, iso_all = iso_all,
-                                               stall_probability_threshold = prob))
+                                               stall_probability_threshold = prob,
+                                               use_ggpattern = use_ggpattern))
                 }
                 dev.off()
             }
@@ -629,7 +639,8 @@ make_all_plots <- function(results_output_dir,
                 for(i in ssa_isos) {
                     plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")), iso == i)
                     print(country_profile_plot(plot_df, iso_all = iso_all,
-                                               stall_probability_threshold = prob))
+                                               stall_probability_threshold = prob,
+                                               use_ggpattern = use_ggpattern))
                 }
                 dev.off()
             }
@@ -648,6 +659,8 @@ make_all_plots <- function(results_output_dir,
         message("\n\n(", i, " of ", length(mar_groups), ") .. ", names(mar_groups)[i])
 
         ## -------*** Inputs
+
+        this_use_ggpattern <- use_ggpattern
 
         res_filepath <- filepaths_outputs[[paste0(this_mar_group, "_all_res_filepath")]]
         res_obj_name <- load(res_filepath)
@@ -670,12 +683,13 @@ make_all_plots <- function(results_output_dir,
 
         cl <- parallel::makeCluster(min(ncores, nplots))
         parallel::clusterExport(cl, varlist = c("this_mar_group", "stall_probability_thresholds",
-                                                "filepaths_outputs", "iso_all"),
+                                                "filepaths_outputs", "iso_all", "use_ggpattern"),
                                 envir = environment())
 
         dump <-
             pbapply::pblapply(X = 1L:nplots,
-                             FUN = "plot_in_parallel", mar_group = this_mar_group,
+                              FUN = "plot_in_parallel",
+                              mar_group = this_mar_group, use_ggpattern = this_use_ggpattern,
                              cl = cl)
         parallel::stopCluster(cl = cl)
     }

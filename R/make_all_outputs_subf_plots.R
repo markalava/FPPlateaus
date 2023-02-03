@@ -51,7 +51,8 @@ stall_plot <- function(plot_df, iso_all,
                        ylim_plot = NULL,
                        xlim_plot = if (identical(xvar, "year")) { c(1980, 2020) } else c(0, 0.6),
                        line_colour = "black",
-                       ribbon_fill = line_colour) {
+                       ribbon_fill = line_colour,
+                       use_ggpattern = TRUE) {
 
     null_arg_msg <- function(x) {
         paste0("Argument '", x, "' is 'NULL'. Check that 'attr(plot_df, ", x, ")' is not 'NULL'. It will be if you used 'base::subset' to create 'plot_df' (use 'dplyr::filter' instead).")
@@ -267,20 +268,24 @@ stall_plot <- function(plot_df, iso_all,
                                               CP_abbrev,
                                               "TFR:\nStrong+\nevidence", "TFR:\nModerate\nevidence",
                                               "TFR:\nLimited\nevidence")),
-                          name = legend_title) +
-        ggpattern::scale_pattern_manual(values = setNames(c("pch",
-                                                            "none", "none", "none", "none"),
-                                                          c("Level condition\nnot met",
-                                                            CP_abbrev,
-                                                            "TFR:\nStrong+\nevidence", "TFR:\nModerate\nevidence",
-                                                            "TFR:\nLimited\nevidence")),
-                                        name = legend_title) +
+                          name = legend_title)  +
         labs(title = paste0(cname, " (",
                             rname, ")"),
              x = xvar, y = ylab) +
         theme_bw() +
         theme(legend.position = "bottom", legend.title.align = 0.5) +
         guides(fill = guide_legend(title.position = "top"))
+
+    if (use_ggpattern) {
+        gp <- gp +
+            ggpattern::scale_pattern_manual(values = setNames(c("pch",
+                                                                "none", "none", "none", "none"),
+                                                              c("Level condition\nnot met",
+                                                                CP_abbrev,
+                                                                "TFR:\nStrong+\nevidence", "TFR:\nModerate\nevidence",
+                                                                "TFR:\nLimited\nevidence")),
+                                            name = legend_title)
+    }
 
     if (is.numeric(xlim_plot)) gp <- gp + xlim(xlim_plot)
 
@@ -297,17 +302,26 @@ stall_plot <- function(plot_df, iso_all,
     }
     if (add_range_regions) {
         if (nrow(indicator_not_in_range_df)) {
-            gp <- gp + ggpattern::geom_polygon_pattern(data = indicator_not_in_range_df,
-                                                       aes(x = x, y = y, group = id,
-                                                           fill = "Level condition\nnot met",
-                                                           pattern = "Level condition\nnot met"),
-                                                       pattern_shape = 20,
-                                                       pattern_density = 0.1,
-                                                       pattern_angle = 0,
-                                                       pattern_fill = "darkgray",
-                                                       pattern_colour = "darkgray",
-                                                       pattern_alpha = fill_alpha,
-                                                       alpha = fill_alpha)
+            if (use_ggpattern) {
+                gp <- gp + ggpattern::geom_polygon_pattern(data = indicator_not_in_range_df,
+                                                           aes(x = x, y = y, group = id,
+                                                               fill = "Level condition\nnot met",
+                                                               pattern = "Level condition\nnot met"),
+                                                           pattern_shape = 20,
+                                                           pattern_density = 0.1,
+                                                           pattern_angle = 0,
+                                                           pattern_fill = "darkgray",
+                                                           pattern_colour = "darkgray",
+                                                           pattern_alpha = fill_alpha,
+                                                           alpha = fill_alpha)
+            } else {
+                gp <- gp + geom_polygon(data = indicator_not_in_range_df,
+                                        aes(x = x, y = y, group = id,
+                                            fill = "Level condition\nnot met"),
+                                        fill = "darkgray",
+                                        colour = "darkgray",
+                                        alpha = fill_alpha)
+            }
         }
     }
 
@@ -319,11 +333,18 @@ stall_plot <- function(plot_df, iso_all,
         } else {
             plot_df_tfr_stall_subtype <- stall_dummy_df
         }
-        gp <- gp + ggpattern::geom_polygon_pattern(data = plot_df_tfr_stall_subtype,
-                                                   aes(x = x, y = y, group = id,
-                                                       fill = "TFR:\nModerate\nevidence",
-                                                       pattern = "TFR:\nModerate\nevidence"),
-                                                   alpha = fill_alpha)
+        if (use_ggpattern) {
+            gp <- gp + ggpattern::geom_polygon_pattern(data = plot_df_tfr_stall_subtype,
+                                                       aes(x = x, y = y, group = id,
+                                                           fill = "TFR:\nModerate\nevidence",
+                                                           pattern = "TFR:\nModerate\nevidence"),
+                                                       alpha = fill_alpha)
+        } else {
+            gp <- gp + geom_polygon(data = plot_df_tfr_stall_subtype,
+                                    aes(x = x, y = y, group = id,
+                                        fill = "TFR:\nModerate\nevidence"),
+                                    alpha = fill_alpha)
+        }
 
         ## TFR stalls
         if (nrow(stall_tfr_df)) {
@@ -331,11 +352,18 @@ stall_plot <- function(plot_df, iso_all,
         } else {
             plot_df_tfr_stall_subtype <- stall_dummy_df
         }
-        gp <- gp + ggpattern::geom_polygon_pattern(data = plot_df_tfr_stall_subtype,
-                                                   aes(x = x, y = y, group = id,
-                                                       fill = "TFR:\nStrong+\nevidence",
-                                                       pattern = "TFR:\nStrong+\nevidence"),
-                                                   alpha = fill_alpha)
+        if (use_ggpattern) {
+            gp <- gp + ggpattern::geom_polygon_pattern(data = plot_df_tfr_stall_subtype,
+                                                       aes(x = x, y = y, group = id,
+                                                           fill = "TFR:\nStrong+\nevidence",
+                                                           pattern = "TFR:\nStrong+\nevidence"),
+                                                       alpha = fill_alpha)
+        } else {
+            gp <- gp + geom_polygon(data = plot_df_tfr_stall_subtype,
+                                    aes(x = x, y = y, group = id,
+                                        fill = "TFR:\nStrong+\nevidence"),
+                                    alpha = fill_alpha)
+        }
 
         ## TFR weak stalls
         if (nrow(stall_tfr_weak_df)) {
@@ -343,11 +371,18 @@ stall_plot <- function(plot_df, iso_all,
         } else {
             plot_df_tfr_stall_subtype <- stall_dummy_df
         }
-        gp <- gp + ggpattern::geom_polygon_pattern(data = plot_df_tfr_stall_subtype,
-                                                   aes(x = x, y = y, group = id,
-                                                       fill = "TFR:\nLimited\nevidence",
-                                                       pattern = "TFR:\nLimited\nevidence"),
-                                                   alpha = fill_alpha)
+        if (use_ggpattern) {
+            gp <- gp + ggpattern::geom_polygon_pattern(data = plot_df_tfr_stall_subtype,
+                                                       aes(x = x, y = y, group = id,
+                                                           fill = "TFR:\nLimited\nevidence",
+                                                           pattern = "TFR:\nLimited\nevidence"),
+                                                       alpha = fill_alpha)
+        } else {
+            gp <- gp + geom_polygon(data = plot_df_tfr_stall_subtype,
+                                                       aes(x = x, y = y, group = id,
+                                                           fill = "TFR:\nLimited\nevidence"),
+                                                       alpha = fill_alpha)
+        }
     }
 
     if (add_FP_stalls) {
@@ -358,13 +393,16 @@ stall_plot <- function(plot_df, iso_all,
         } else {
             plot_df_fp_stall <- stall_dummy_df
         }
-        gp <- gp +
-            ggpattern::geom_polygon_pattern(data =  plot_df_fp_stall,
-                                            aes(x = x, y = y2, group = id,
-                                                fill = CP_abbrev,
-                                                pattern = CP_abbrev),
-                                            alpha = fill_alpha)
-
+        if (use_ggpattern) {
+            gp <- gp + ggpattern::geom_polygon_pattern(data =  plot_df_fp_stall,
+                                                aes(x = x, y = y2, group = id, fill = CP_abbrev,
+                                                    pattern = CP_abbrev),
+                                                alpha = fill_alpha)
+        } else {
+            gp <- gp + ggpattern::geom_polygon_pattern(data =  plot_df_fp_stall,
+                                                aes(x = x, y = y2, group = id, fill = CP_abbrev),
+                                                alpha = fill_alpha)
+        }
     }
 
     ## Indicator Lines and Ribbons
@@ -426,7 +464,7 @@ plot_stall_prob <- function(df, iso_all, ylim = c(0, 1), xlim = c(1980, 2020)) {
 
 ##' @import ggplot2
 ##' @export
-country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold) {
+country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold, use_ggpattern = TRUE) {
 
     stopifnot(identical(length(stall_probability_threshold), 1L) &&
               is.numeric(stall_probability_threshold) &&
@@ -438,14 +476,16 @@ country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold) 
     pl1 <- stall_plot(plot_df_modern, iso_all = iso_all, CP_abbrev = "CP Modern", yvar = "Modern_median",
                       facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
-                      CP_not_in_range_abbrev = "FP Indicator") +
+                      CP_not_in_range_abbrev = "FP Indicator",
+                      use_ggpattern = use_ggpattern) +
         facet_grid(indicator ~ stall_stat, switch = "y") +
         labs(title = "")
 
     plot_df_modern$stall_stat <- "Annual Change"
     pl2 <- stall_plot(plot_df_modern, iso_all = iso_all, CP_abbrev = "CP Modern", facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
-                      CP_not_in_range_abbrev = "FP Indicator") +
+                      CP_not_in_range_abbrev = "FP Indicator",
+                      use_ggpattern = use_ggpattern) +
         facet_grid(indicator ~ stall_stat, switch = "y") +
         labs(title = "")
 
@@ -453,7 +493,8 @@ country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold) 
     pl3 <- stall_plot(plot_df_modern, iso_all = iso_all, CP_abbrev = "CP Modern", yvar = "stall_prob",
                       facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
-                      CP_not_in_range_abbrev = "FP Indicator") +
+                      CP_not_in_range_abbrev = "FP Indicator",
+                      use_ggpattern = use_ggpattern) +
         facet_grid(indicator ~ stall_stat, switch = "y") +
         labs(title = "")
 
@@ -464,14 +505,16 @@ country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold) 
     pl4 <- stall_plot(plot_df_mdmm, iso_all = iso_all, CP_abbrev = "Met Dem.\nMod. Meth.", yvar = "MetDemModMeth_median",
                       facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
-                      CP_not_in_range_abbrev = "FP Indicator") +
+                      CP_not_in_range_abbrev = "FP Indicator",
+                      use_ggpattern = use_ggpattern) +
         facet_grid(indicator ~ stall_stat, switch = "y") +
         labs(title = "")
 
     plot_df_mdmm$stall_stat <- "Annual Change"
     pl5 <- stall_plot(plot_df_mdmm, iso_all = iso_all, CP_abbrev = "Met Dem.\nMod. Meth.", facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
-                      CP_not_in_range_abbrev = "FP Indicator") +
+                      CP_not_in_range_abbrev = "FP Indicator",
+                      use_ggpattern = use_ggpattern) +
         facet_grid(indicator ~ stall_stat, switch = "y") +
         labs(title = "")
 
@@ -479,7 +522,8 @@ country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold) 
     pl6 <- stall_plot(plot_df_mdmm, iso_all = iso_all, CP_abbrev = "Met Dem.\nMod. Meth.", yvar = "stall_prob",
                       facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
-                      CP_not_in_range_abbrev = "FP Indicator") +
+                      CP_not_in_range_abbrev = "FP Indicator",
+                      use_ggpattern = use_ggpattern) +
         facet_grid(indicator ~ stall_stat, switch = "y") +
         labs(title = "")
 
