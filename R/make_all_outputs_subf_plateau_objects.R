@@ -475,17 +475,16 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
 
     if (identical(Level_condition_variant, "v2 - SDG Only")) {
 
-        tmp <- df |>
+        min_yr_tbl <- df |>
             dplyr::select(iso, indicator, year, Level_condition_met) |>
             dplyr::filter(Level_condition_met) |>
             dplyr::group_by(iso, indicator) |>
             dplyr::summarize(min_year = min(year))
 
-        tmp <- dplyr::left_join(df[c("iso", "indicator", "year", "Level_condition_met")],
-                                tmp,
-                                by = c("iso", "indicator"))
-        tmp <- !is.na(tmp$Level_condition_met) & tmp$year >= tmp$min_year
-        df[tmp, "Level_condition_met"] <- TRUE
+        df <- dplyr::left_join(df, min_yr_tbl, by = c("iso", "indicator"))
+        idx <- !is.na(df$Level_condition_met) & df$year >= df$min_year
+        df[which(idx), ]$Level_condition_met <- TRUE
+        df <- dplyr::select(df, -min_year)
 
     }
 
@@ -592,7 +591,7 @@ add_stall_lengths <- function(df, min_stall_length,
 
     ## -------** Add Lengths
 
-    if (length(unique(df$iso)) * length(unique(df$indicator)) > 4 * cores) {
+    if (!is.null(cores) && length(unique(df$iso)) * length(unique(df$indicator)) > 4 * cores) {
         cl <- parallel::makeCluster(cores)
         parallel::clusterExport(cl, varlist = c("stall_column_names", "min_stall_length"),
                                 envir = environment())
