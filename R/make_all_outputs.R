@@ -105,252 +105,146 @@ make_all_results <- function(country_isos_to_process = NULL,
     change_condition <- change_condition_percent / 100
 
 
-    ## -------* All Women (WRA)
+    ## -------* By Marital Group
 
-    message("\n(1 of 2) .. All women (WRA)")
+    for (this_mar in c("wra", "mwra")) {
 
-    ## -------** Create Stall Probabilities
+        if (identical(this_mar, "wra")) {
+            this_message_txt <- "(1 of 2) .. All women (WRA)"
+            this_run_name <- filepaths_inputs$FPEM_results_subdir_names$rn_wra
+            this_output_dir <- filepaths_inputs$res_dir_wra
+            this_all_res_filepath <- filepaths_outputs$wra_all_res_filepath
+        } else {
+            this_message_txt <- "(2 of 2) .. Married women (MWRA)"
+            this_run_name <- filepaths_inputs$FPEM_results_subdir_names$rn_mwra
+            this_output_dir <- filepaths_inputs$res_dir_mwra
+            this_all_res_filepath <- filepaths_outputs$mwra_all_res_filepath
+        }
 
-    message("  (1 of 3) .. Creating stall probabilities")
+        message("\n", this_message_txt)
 
-    ## Extract and summarize posterior trajectories
+        ## -------** Create Stall Probabilities
 
-    if (!is.null(ncores)) {
-        cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
-        parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
-                                                "smooth_type", "smoothing_method", "min_stall_length",
-                                                "denominator_count_filename",
-                                                "change_condition", ".testing"),
-                                envir = environment())
-    } else cl <- NULL # cl NULL means process in serial
-    stall_prob_wra_df <-
-        pbapply::pblapply(country_isos_to_process,
-                          function(z) {
-                     make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_wra,
-                                        output_dir = filepaths_inputs$res_dir_wra, add_iso_column = TRUE,
-                                        smooth_type = smooth_type,
-                                        differences = 1, # the order of the differences, hardcoded
-                                        change_condition = change_condition,
-                                        filter_width = 3, # the width of the window for moving average or ols, hardcoded
-                                        denominator_count_filename = denominator_count_filename,
-                                        .testing = .testing)
-                 },
-                 cl = cl)
-    if (!is.null(ncores)) parallel::stopCluster(cl = cl)
+        message("  (1 of 3) .. Creating stall probabilities")
 
-    stall_prob_wra_df <- do.call("rbind", stall_prob_wra_df)
+        ## Extract and summarize posterior trajectories
 
-    stall_prob_wra_df$in_time_window <-
-        stall_prob_wra_df$year >= min(year_lim) & stall_prob_wra_df$year <= max(year_lim)
+        if (!is.null(ncores)) {
+            cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
+            parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
+                                                    "this_run_name", "this_output_dir",
+                                                    "smooth_type", "smoothing_method", "min_stall_length",
+                                                    "denominator_count_filename",
+                                                    "change_condition", ".testing"),
+                                    envir = environment())
+        } else cl <- NULL # cl NULL means process in serial
+        stall_prob_df <-
+            pbapply::pblapply(country_isos_to_process,
+                              function(z) {
+                         make_stall_prob_df(z, run_name = this_run_name,
+                                            output_dir = this_output_dir,
+                                            add_iso_column = TRUE,
+                                            smooth_type = smooth_type,
+                                            differences = 1, # the order of the differences, hardcoded
+                                            change_condition = change_condition,
+                                            filter_width = 3, # the width of the window for moving average or ols, hardcoded
+                                            denominator_count_filename = denominator_count_filename,
+                                            .testing = .testing)
+                     },
+                     cl = cl)
+        if (!is.null(ncores)) parallel::stopCluster(cl = cl)
 
-    ## Add level condition indicator
+        stall_prob_df <- do.call("rbind", stall_prob_df)
 
-    stall_prob_wra_df <-
-        add_level_condition_indicators(stall_prob_wra_df,
-                                       Level_condition_variant = Level_condition_variant,
+        stall_prob_df$in_time_window <-
+            stall_prob_df$year >= min(year_lim) & stall_prob_df$year <= max(year_lim)
+
+        ## Add level condition indicator
+
+        stall_prob_df <-
+            add_level_condition_indicators(stall_prob_df,
+                                           Level_condition_variant = Level_condition_variant,
                                            CP_range_condition_min = CP_range_condition_min,
                                            CP_range_condition_max = CP_range_condition_max,
                                            MDMM_range_condition_min = MDMM_range_condition_min,
                                            MDMM_range_condition_max = MDMM_range_condition_max)
 
-    ## Add Single-year Stall Indicators
+        ## Add Single-year Stall Indicators
 
-    stall_prob_wra_df <-
-        add_stall_indicators_probabilities(stall_prob_wra_df,
-                                           stall_probability_thresholds = stall_probability_thresholds)
+        stall_prob_df <-
+            add_stall_indicators_probabilities(stall_prob_df,
+                                               stall_probability_thresholds = stall_probability_thresholds)
 
-    ## Add stall length info
+        ## Add stall length info
 
-    message("  (2 of 3) .. Calculating stall lengths")
+        message("  (2 of 3) .. Calculating stall lengths")
 
-    stall_prob_wra_df <-
-        add_stall_lengths(stall_prob_wra_df,
-                          min_stall_length = min_stall_length,
-                          stall_probability_thresholds = attr(stall_prob_wra_df,
-                                                              "stall_probability_thresholds"),
-                          cores = ncores)
+        stall_prob_df <-
+            add_stall_lengths(stall_prob_df,
+                              min_stall_length = min_stall_length,
+                              stall_probability_thresholds = attr(stall_prob_df,
+                                                                  "stall_probability_thresholds"),
+                              cores = ncores)
 
-    ## Add Schoumaker's TFR stalls
+        ## Add Schoumaker's TFR stalls
 
-    stall_prob_wra_df <- add_schoumaker_tfr_stalls(stall_prob_wra_df, iso_all = iso_all)
-
-
-    ## -------** Create 'Annual Change' Data
-
-    message("  (3 of 3) .. Creating annual change data")
-
-    ## Extract and summarize posterior trajectories
-
-    if (!is.null(ncores)) {
-        cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
-        parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
-                                                "denominator_count_filename", ".testing"),
-                                envir = environment())
-    } else cl <- NULL
-    annual_cp_change_wra_df <-
-        pbapply::pblapply(country_isos_to_process,
-                          function(z) {
-                     make_q_diff_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_wra,
-                                    output_dir = filepaths_inputs$res_dir_wra, add_iso_column = TRUE,
-                                    differences = 1,
-                                    denominator_count_filename = denominator_count_filename,
-                                    .testing = .testing)
-                 },
-                 cl = cl)
-    if (!is.null(ncores)) parallel::stopCluster(cl = cl)
-
-    annual_cp_change_wra_df <- do.call("rbind", annual_cp_change_wra_df)
+        stall_prob_df <- add_schoumaker_tfr_stalls(stall_prob_df, iso_all = iso_all)
 
 
-    ## -------** Merge and Save
+        ## -------** Create 'Annual Change' Data
 
-    ## Merge annual changes and probabilities
+        message("  (3 of 3) .. Creating annual change data")
 
-    wra_all_res_df <-
-        dplyr::left_join(stall_prob_wra_df,
-                         annual_cp_change_wra_df[, c("year", "indicator", "iso",
+        ## Extract and summarize posterior trajectories
+
+        if (!is.null(ncores)) {
+            cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
+            parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
+                                                    "denominator_count_filename", ".testing"),
+                                    envir = environment())
+        } else cl <- NULL
+        annual_cp_change_df <-
+            pbapply::pblapply(country_isos_to_process,
+                              function(z) {
+                         make_q_diff_df(z,
+                                        run_name = this_run_name,
+                                        output_dir = this_output_dir,
+                                        add_iso_column = TRUE,
+                                        differences = 1,
+                                        denominator_count_filename = denominator_count_filename,
+                                        .testing = .testing)
+                     },
+                     cl = cl)
+        if (!is.null(ncores)) parallel::stopCluster(cl = cl)
+
+        annual_cp_change_df <- do.call("rbind", annual_cp_change_df)
+
+
+        ## -------** Merge and Save
+
+        ## Merge annual changes and probabilities
+
+        all_res_df <-
+            dplyr::left_join(stall_prob_df,
+                             annual_cp_change_df[, c("year", "indicator", "iso",
                                                      "annual_change_2.5%", "annual_change_10%",
                                                      "annual_change_50%", "annual_change_90%",
                                                      "annual_change_97.5%")],
-                         by = c("iso", "indicator", "year"))
+                             by = c("iso", "indicator", "year"))
 
-    ## Country info
+        ## Country info
 
-    wra_all_res_df <- dplyr::left_join(wra_all_res_df, iso_all, by = "iso")
+        all_res_df <- dplyr::left_join(all_res_df, iso_all, by = "iso")
 
-    ## Save
+        ## Save
+        assign(paste0(this_mar, "_all_res_df"), all_res_df)
+        save(list = paste0(this_mar, "_all_res_df"), file = this_all_res_filepath)
 
-    save(wra_all_res_df, file = filepaths_outputs$wra_all_res_filepath)
+        ## Tables / CSV Files
+        ## THESE end up corrupt and unloadable, so don't do
+        ## writexl::write_xlsx(wra_all_res_df, path = filepaths_outputs$wra_all_results_tables_filepath)
 
-    ## Tables / CSV Files
-    ## THESE end up corrupt and unloadable, so don't do
-    ## writexl::write_xlsx(wra_all_res_df, path = filepaths_outputs$wra_all_results_tables_filepath)
-
-
-    ## -------* Married/In-Union Women (MWRA)
-
-    message("\n(2 of 2) .. Married women (MWRA)")
-
-    ## -------** Create Stall Probabilities
-
-    message("  (1 of 3) .. Creating stall probabilities")
-
-    ## Extract and summarize posterior trajectories
-
-    if (!is.null(ncores)) {
-        cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
-        parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
-                                                "smooth_type", "smoothing_method", "min_stall_length",
-                                                "denominator_count_filename",
-                                                "change_condition", ".testing"),
-                                envir = environment())
-    } else cl <- NULL # cl NULL means process in serial
-    stall_prob_mwra_df <-
-        pbapply::pblapply(country_isos_to_process,
-                          function(z) {
-                     make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_mwra,
-                                        output_dir = filepaths_inputs$res_dir_mwra, add_iso_column = TRUE,
-                                        smooth_type = smooth_type,
-                                        differences = 1,
-                                        change_condition = change_condition,
-                                        filter_width = 3,
-                                        denominator_count_filename = denominator_count_filename,
-                                        .testing = .testing)
-                 },
-                 cl = cl)
-    if (!is.null(ncores)) parallel::stopCluster(cl = cl)
-
-    stall_prob_mwra_df <- do.call("rbind", stall_prob_mwra_df)
-
-    stall_prob_mwra_df <-
-        within(stall_prob_mwra_df,
-               in_time_window <- year >= min(year_lim) & year <= max(year_lim))
-
-    ## Add level condition indicator
-
-    stall_prob_mwra_df <-
-        add_level_condition_indicators(stall_prob_mwra_df,
-                                       Level_condition_variant = Level_condition_variant,
-                                           CP_range_condition_min = CP_range_condition_min,
-                                           CP_range_condition_max = CP_range_condition_max,
-                                           MDMM_range_condition_min = MDMM_range_condition_min,
-                                           MDMM_range_condition_max = MDMM_range_condition_max)
-
-    ## Add Single-year Stall Indicators
-
-    stall_prob_mwra_df <-
-        add_stall_indicators_probabilities(stall_prob_mwra_df,
-                                           stall_probability_thresholds = stall_probability_thresholds)
-
-    ## Add stall length info
-
-    message("  (2 of 3) .. Calculating stall lengths")
-
-    stall_prob_mwra_df <-
-        add_stall_lengths(stall_prob_mwra_df,
-                          min_stall_length = min_stall_length,
-                          stall_probability_thresholds = attr(stall_prob_mwra_df,
-                                                              "stall_probability_thresholds"),
-                          cores = ncores)
-
-    ## Add Schoumaker's TFR stalls
-
-    stall_prob_mwra_df <- add_schoumaker_tfr_stalls(stall_prob_mwra_df, iso_all = iso_all)
-
-
-    ## -------** Create Annual Change Data
-
-    message("  (3 of 3) .. Creating annual change data")
-
-    ## Extract and summarize posterior trajectories
-
-    if (!is.null(ncores)) {
-        cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
-        parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
-                                                "denominator_count_filename", ".testing"),
-                                envir = environment())
-    } else cl <- NULL
-    annual_cp_change_mwra_df <-
-        pbapply::pblapply(country_isos_to_process,
-                          function(z) {
-                     make_q_diff_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_mwra,
-                                    output_dir = filepaths_inputs$res_dir_mwra, add_iso_column = TRUE,
-                                    differences = 1,
-                                    denominator_count_filename = denominator_count_filename,
-                                    .testing = .testing)
-                 },
-                 cl = cl)
-    if (!is.null(ncores)) parallel::stopCluster(cl = cl)
-
-    annual_cp_change_mwra_df <- do.call("rbind", annual_cp_change_mwra_df)
-
-
-    ## -------** Merge and Save
-
-    message("\nSaving results")
-
-    ## Merge annual changes and probabilities
-
-    mwra_all_res_df <-
-        dplyr::left_join(stall_prob_mwra_df,
-                         annual_cp_change_mwra_df[, c("year", "indicator", "iso",
-                                                      "annual_change_2.5%", "annual_change_10%",
-                                                      "annual_change_50%", "annual_change_90%",
-                                                      "annual_change_97.5%")],
-                         by = c("iso", "indicator", "year"))
-
-    ## Country info
-
-    mwra_all_res_df <- dplyr::left_join(mwra_all_res_df, iso_all, by = "iso")
-
-    ## Save
-
-    save(mwra_all_res_df, file = filepaths_outputs$mwra_all_res_filepath)
-
-    ## Tables / CSV Files
-    ## THESE end up corrupt and unloadable, so don't do
-    ## writexl::write_xlsx(mwra_all_res_df, path = filepaths_outputs$mwra_all_results_tables_filepath)
-
+    }
 
     ## -------* Return
 
