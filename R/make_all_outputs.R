@@ -126,8 +126,6 @@ make_all_results <- function(country_isos_to_process = NULL,
     stall_prob_wra_df <-
         pbapply::pblapply(country_isos_to_process,
                           function(z) {
-                     library(magrittr)
-                     library(FPEMglobal.aux)
                      make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_wra,
                                         output_dir = filepaths_inputs$res_dir_wra, add_iso_column = TRUE,
                                         smooth_type = smooth_type,
@@ -192,8 +190,6 @@ make_all_results <- function(country_isos_to_process = NULL,
     annual_cp_change_wra_df <-
         pbapply::pblapply(country_isos_to_process,
                           function(z) {
-                     library(magrittr)
-                     library(FPEMglobal.aux)
                      make_q_diff_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_wra,
                                     output_dir = filepaths_inputs$res_dir_wra, add_iso_column = TRUE,
                                     differences = 1,
@@ -252,8 +248,6 @@ make_all_results <- function(country_isos_to_process = NULL,
     stall_prob_mwra_df <-
         pbapply::pblapply(country_isos_to_process,
                           function(z) {
-                     library(magrittr)
-                     library(FPEMglobal.aux)
                      make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_mwra,
                                         output_dir = filepaths_inputs$res_dir_mwra, add_iso_column = TRUE,
                                         smooth_type = smooth_type,
@@ -319,8 +313,6 @@ make_all_results <- function(country_isos_to_process = NULL,
     annual_cp_change_mwra_df <-
         pbapply::pblapply(country_isos_to_process,
                           function(z) {
-                     library(magrittr)
-                     library(FPEMglobal.aux)
                      make_q_diff_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_mwra,
                                     output_dir = filepaths_inputs$res_dir_mwra, add_iso_column = TRUE,
                                     differences = 1,
