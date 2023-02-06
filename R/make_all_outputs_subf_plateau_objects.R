@@ -501,20 +501,15 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
 
 ##' @export
 add_stall_indicators_probabilities <- function(df, stall_probability_thresholds) {
-    idx <- !is.na(df$stall_prob) & !is.na(df$Level_condition_met)
+    idx <- !is.na(df$stall_prob) & !is.na(df$Level_condition_met) &
+                 df$indicator %in% c("Modern", "Unmet", "MetDemModMeth")
     for (p in stall_probability_thresholds) {
-        df[, paste0("stall_year_prob_", p)] <- FALSE
-        df[idx, ][df[idx, ]$indicator %in% c("Modern", "Unmet") &
-                        df[idx, ]$Level_condition_met & df[idx, ]$stall_prob >= p,
-           paste0("stall_year_prob_", p)] <- TRUE
-        df[idx, ][df[idx, ]$indicator == "MetDemModMeth" &
-                        df[idx, ]$Level_condition_met & df[idx, ]$stall_prob >= p,
-           paste0("stall_year_prob_", p)] <- TRUE
+        stall_year_colname <- paste0("stall_year_prob_", p)
+        df[, stall_year_colname] <- FALSE
+        df[which(idx & df$stall_prob >= p), stall_year_colname] <- TRUE
     }
-
     row.names(df) <- NULL
     attr(df, "stall_probability_thresholds") <- stall_probability_thresholds
-
     return(df)
 }
 
