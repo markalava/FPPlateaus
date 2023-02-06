@@ -32,9 +32,7 @@ check_change_condition_percent <- function(change_condition_percent) {
 
 ##' @export
 make_all_results <- function(country_isos_to_process = NULL,
-                             smoothing_method = c("annual_difference",
-                                                  "moving_average",
-                                                  "local_linear"),
+                             smoothing_method = c("annual_difference", "moving_average", "local_linear"),
                              min_stall_length = NULL,
                              change_condition_percent,
                              stall_probability_thresholds = c(0.5, 0.75, 0.8, 0.9, 0.95),
@@ -58,7 +56,7 @@ make_all_results <- function(country_isos_to_process = NULL,
                                 # 'SDG Only' means SDG level condition depends only on level of SDG.
                              ) {
 
-    message("\n\n\nMaking all results")
+    message("\nMaking all results")
 
     ## -------* Check Arguments
 
@@ -109,40 +107,43 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## -------* All Women (WRA)
 
-    message("\n\n(1 of 2) .. All women (WRA)")
+    message("\n(1 of 2) .. All women (WRA)")
 
     ## -------** Create Stall Probabilities
 
-    message("\n  (1 of 3) .. Creating stall probabilities")
+    message("  (1 of 3) .. Creating stall probabilities")
 
-    cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
-    parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
-                                  "smooth_type", "smoothing_method", "min_stall_length",
-                                  "denominator_count_filename",
-                                  "change_condition", ".testing"),
-                            envir = environment())
+    ## Extract and summarize posterior trajectories
+
+    if (!is.null(ncores)) {
+        cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
+        parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
+                                                "smooth_type", "smoothing_method", "min_stall_length",
+                                                "denominator_count_filename",
+                                                "change_condition", ".testing"),
+                                envir = environment())
+    } else cl <- NULL # cl NULL means process in serial
     stall_prob_wra_df <-
         pbapply::pblapply(country_isos_to_process,
-                 function(z) {
-            library(magrittr)
-            library(FPEMglobal.aux)
-            make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_wra,
-                               output_dir = filepaths_inputs$res_dir_wra, add_iso_column = TRUE,
-                               smooth_type = smooth_type,
-                               differences = 1, # the order of the differences, hardcoded
-                               change_condition = change_condition,
-                               filter_width = 3, # the width of the window for moving average or ols, hardcoded
-                               denominator_count_filename = denominator_count_filename,
-                               .testing = .testing)
-        },
-        cl = cl)
-    parallel::stopCluster(cl = cl)
+                          function(z) {
+                     library(magrittr)
+                     library(FPEMglobal.aux)
+                     make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_wra,
+                                        output_dir = filepaths_inputs$res_dir_wra, add_iso_column = TRUE,
+                                        smooth_type = smooth_type,
+                                        differences = 1, # the order of the differences, hardcoded
+                                        change_condition = change_condition,
+                                        filter_width = 3, # the width of the window for moving average or ols, hardcoded
+                                        denominator_count_filename = denominator_count_filename,
+                                        .testing = .testing)
+                 },
+                 cl = cl)
+    if (!is.null(ncores)) parallel::stopCluster(cl = cl)
 
     stall_prob_wra_df <- do.call("rbind", stall_prob_wra_df)
 
-    stall_prob_wra_df <-
-        within(stall_prob_wra_df,
-               in_time_window <- year >= min(year_lim) & year <= max(year_lim))
+    stall_prob_wra_df$in_time_window <-
+        stall_prob_wra_df$year >= min(year_lim) & stall_prob_wra_df$year <= max(year_lim)
 
     ## Add level condition indicator
 
@@ -162,7 +163,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Add stall length info
 
-    message("\n  (2 of 3) .. Calculating stall lengths")
+    message("  (2 of 3) .. Calculating stall lengths")
 
     stall_prob_wra_df <-
         add_stall_lengths(stall_prob_wra_df,
@@ -178,27 +179,29 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## -------** Create 'Annual Change' Data
 
-    message("\n  (3 of 3) .. Creating annual change data")
+    message("  (3 of 3) .. Creating annual change data")
 
     ## Extract and summarize posterior trajectories
 
-    cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
-    parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
-                                            "denominator_count_filename", ".testing"),
-                            envir = environment())
+    if (!is.null(ncores)) {
+        cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
+        parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
+                                                "denominator_count_filename", ".testing"),
+                                envir = environment())
+    } else cl <- NULL
     annual_cp_change_wra_df <-
         pbapply::pblapply(country_isos_to_process,
-                 function(z) {
-            library(magrittr)
-            library(FPEMglobal.aux)
-            make_q_diff_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_wra,
-                           output_dir = filepaths_inputs$res_dir_wra, add_iso_column = TRUE,
-                           differences = 1,
-                           denominator_count_filename = denominator_count_filename,
-                           .testing = .testing)
-        },
-        cl = cl)
-    parallel::stopCluster(cl = cl)
+                          function(z) {
+                     library(magrittr)
+                     library(FPEMglobal.aux)
+                     make_q_diff_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_wra,
+                                    output_dir = filepaths_inputs$res_dir_wra, add_iso_column = TRUE,
+                                    differences = 1,
+                                    denominator_count_filename = denominator_count_filename,
+                                    .testing = .testing)
+                 },
+                 cl = cl)
+    if (!is.null(ncores)) parallel::stopCluster(cl = cl)
 
     annual_cp_change_wra_df <- do.call("rbind", annual_cp_change_wra_df)
 
@@ -217,7 +220,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Country info
 
-    wra_all_res_df <- dplyr::left_join(wra_all_res_df, iso_all)
+    wra_all_res_df <- dplyr::left_join(wra_all_res_df, iso_all, by = "iso")
 
     ## Save
 
@@ -228,39 +231,40 @@ make_all_results <- function(country_isos_to_process = NULL,
     ## writexl::write_xlsx(wra_all_res_df, path = filepaths_outputs$wra_all_results_tables_filepath)
 
 
-
     ## -------* Married/In-Union Women (MWRA)
 
     message("\n(2 of 2) .. Married women (MWRA)")
 
     ## -------** Create Stall Probabilities
 
-    message("\n  (1 of 3) .. Creating stall probabilities")
+    message("  (1 of 3) .. Creating stall probabilities")
 
     ## Extract and summarize posterior trajectories
 
-    cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
-    parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
-                                  "smooth_type",
-                                  "denominator_count_filename",
-                                  "change_condition", ".testing"),
-                            envir = environment())
+    if (!is.null(ncores)) {
+        cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
+        parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
+                                                "smooth_type", "smoothing_method", "min_stall_length",
+                                                "denominator_count_filename",
+                                                "change_condition", ".testing"),
+                                envir = environment())
+    } else cl <- NULL # cl NULL means process in serial
     stall_prob_mwra_df <-
         pbapply::pblapply(country_isos_to_process,
-                 function(z) {
-            library(magrittr)
-            library(FPEMglobal.aux)
-            make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_mwra,
-                               output_dir = filepaths_inputs$res_dir_mwra, add_iso_column = TRUE,
-                               smooth_type = smooth_type,
-                               differences = 1,
-                               change_condition = change_condition,
-                               filter_width = 3,
-                               denominator_count_filename = denominator_count_filename,
-                               .testing = .testing)
-        },
-        cl = cl)
-    parallel::stopCluster(cl = cl)
+                          function(z) {
+                     library(magrittr)
+                     library(FPEMglobal.aux)
+                     make_stall_prob_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_mwra,
+                                        output_dir = filepaths_inputs$res_dir_mwra, add_iso_column = TRUE,
+                                        smooth_type = smooth_type,
+                                        differences = 1,
+                                        change_condition = change_condition,
+                                        filter_width = 3,
+                                        denominator_count_filename = denominator_count_filename,
+                                        .testing = .testing)
+                 },
+                 cl = cl)
+    if (!is.null(ncores)) parallel::stopCluster(cl = cl)
 
     stall_prob_mwra_df <- do.call("rbind", stall_prob_mwra_df)
 
@@ -286,7 +290,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Add stall length info
 
-    message("\n  (2 of 3) .. Calculating stall lengths")
+    message("  (2 of 3) .. Calculating stall lengths")
 
     stall_prob_mwra_df <-
         add_stall_lengths(stall_prob_mwra_df,
@@ -302,27 +306,29 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## -------** Create Annual Change Data
 
-    message("\n  (3 of 3) .. Creating annual change data")
+    message("  (3 of 3) .. Creating annual change data")
 
     ## Extract and summarize posterior trajectories
 
-    cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
-    parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
-                                            "denominator_count_filename", ".testing"),
-                            envir = environment())
+    if (!is.null(ncores)) {
+        cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
+        parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
+                                                "denominator_count_filename", ".testing"),
+                                envir = environment())
+    } else cl <- NULL
     annual_cp_change_mwra_df <-
         pbapply::pblapply(country_isos_to_process,
-                 function(z) {
-            library(magrittr)
-            library(FPEMglobal.aux)
-            make_q_diff_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_mwra,
-                           output_dir = filepaths_inputs$res_dir_mwra, add_iso_column = TRUE,
-                           differences = 1,
-                           denominator_count_filename = denominator_count_filename,
-                           .testing = .testing)
-        },
-        cl = cl)
-    parallel::stopCluster(cl = cl)
+                          function(z) {
+                     library(magrittr)
+                     library(FPEMglobal.aux)
+                     make_q_diff_df(z, run_name = filepaths_inputs$FPEM_results_subdir_names$rn_mwra,
+                                    output_dir = filepaths_inputs$res_dir_mwra, add_iso_column = TRUE,
+                                    differences = 1,
+                                    denominator_count_filename = denominator_count_filename,
+                                    .testing = .testing)
+                 },
+                 cl = cl)
+    if (!is.null(ncores)) parallel::stopCluster(cl = cl)
 
     annual_cp_change_mwra_df <- do.call("rbind", annual_cp_change_mwra_df)
 
@@ -343,7 +349,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## Country info
 
-    mwra_all_res_df <- dplyr::left_join(mwra_all_res_df, iso_all)
+    mwra_all_res_df <- dplyr::left_join(mwra_all_res_df, iso_all, by = "iso")
 
     ## Save
 
@@ -372,7 +378,7 @@ make_all_plots <- function(results_output_dir,
                            ncores = parallelly::availableCores(omit = 1),
                            .testing = FALSE) {
 
-    message("\n\n\nMaking all plots")
+    message("\nMaking all plots")
 
     ## -------* Check Arguments
 
@@ -406,6 +412,8 @@ make_all_plots <- function(results_output_dir,
         if (identical(PLOT_NUMBER, 1L)) {
 
             ## All FP Indicators Plots
+
+            message("  'All FP Indicators' plots.")
 
             for (prob in stall_probability_thresholds) {
                 for (yvar in c("stall_prob", "annual_change_50%")) {
@@ -441,11 +449,11 @@ make_all_plots <- function(results_output_dir,
                 }
             }
 
-            message("'All FP Indicators' plots finished.")
-
         } else if (identical(PLOT_NUMBER, 2L)) {
 
             ## Just One Indicator All Countries
+
+            message("  'Just One Indicator All Countries' plots.")
 
             for (prob in stall_probability_thresholds) {
                 for (yvar in c("stall_prob", "annual_change_50%")) {
@@ -494,11 +502,11 @@ make_all_plots <- function(results_output_dir,
                 }
             }
 
-            message("'Just One Indicator All Countries' plots finished.")
-
         } else if (identical(PLOT_NUMBER, 3L)) {
 
             ## SSA, only countries with stalls (CP or fertility)
+
+            message("  'SSA Countries with cp or Fertility Stalls' plots.")
 
             ssa_isos <- iso_all |>
                 dplyr::filter(sub_saharanafrica == "Yes") |>
@@ -552,13 +560,11 @@ make_all_plots <- function(results_output_dir,
                 }
             }
 
-            message("'SSA Countries with cp or Fertility Stalls' plots finished.")
-
         } else if (identical(PLOT_NUMBER, 4L)) {
 
             ## Hybrid Stalls / Indicators Plots (Country 'Profiles')
 
-            message("\nCountry profile plots")
+            message("  'Country Profile' plots.")
 
             for (prob in stall_probability_thresholds) {
                 pdf(file = file.path(filepaths_outputs$results_output_plots_dir, mar_group,
@@ -573,11 +579,11 @@ make_all_plots <- function(results_output_dir,
                 dev.off()
             }
 
-            message("'Country Profile' plots finished.")
-
         } else if (identical(PLOT_NUMBER, 5L)) {
 
             ## Hybrid Stalls / Indicators Plots (Country 'Profiles'), SSA Only
+
+            message("  'Country Profile, SSA Only' plots.")
 
             ssa_isos <- iso_all |>
                 dplyr::filter(sub_saharanafrica == "Yes") |>
@@ -596,7 +602,6 @@ make_all_plots <- function(results_output_dir,
                 }
                 dev.off()
             }
-            message("'Country Profile, SSA Only' plots finished.")
         }
     }
 
@@ -608,7 +613,7 @@ make_all_plots <- function(results_output_dir,
 
         this_mar_group <- mar_groups[i]
 
-        message("\n\n(", i, " of ", length(mar_groups), ") .. ", names(mar_groups)[i])
+        message("\n(", i, " of ", length(mar_groups), ") .. ", names(mar_groups)[i])
 
         ## -------*** Inputs
 
