@@ -5,5 +5,3 @@
 ^LICENSE\.md$
 ^__install-WINDOWS.bat$
 
-^tests/testthat/test-short_run_LOCAL_ONLY.R$
-

@@ -55,7 +55,7 @@ ECHO. ==========================================================================
 ECHO. TESTS
 ECHO. ================================================================================
 
-Rscript -e "testthat::test_local('tests/testthat')"
+Rscript "inst/slowTests/test-short_run.R"
 if %ERRORLEVEL% GEQ 1 PAUSE
 
 rem Rscript -e "testthat::test_package('FPPlateaus')"
