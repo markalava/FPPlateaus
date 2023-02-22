@@ -55,11 +55,11 @@ ECHO. ==========================================================================
 ECHO. TESTS
 ECHO. ================================================================================
 
-Rscript "inst/slowTests/test-short_run.R"
+Rscript -e "testthat::test_package('FPPlateaus')"
 if %ERRORLEVEL% GEQ 1 PAUSE
 
-rem Rscript -e "testthat::test_package('FPPlateaus')"
-rem if %ERRORLEVEL% GEQ 1 PAUSE
+Rscript "inst/slowTests/test-short_run.R"
+if %ERRORLEVEL% GEQ 1 PAUSE
 
 ECHO.
 ECHO.
