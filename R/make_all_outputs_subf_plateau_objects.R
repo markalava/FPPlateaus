@@ -275,7 +275,7 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
                                .testing = FALSE) {
 
     smooth_type <- match.arg(smooth_type)
-    if (identical(smooth_type, "Annual Difference")) filter_width <- NA
+    if (identical(smooth_type, "Annual Difference")) filter_width <- NA_real_ #needs to be numeric
 
     ## MCMC meta
     load(file.path(output_dir, "mcmc.meta.rda"))
@@ -422,10 +422,9 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
     tra_med_df$year <- rownames(tra_med_df)
 
     ## Merge and finish
-    return(structure(data.frame(base::merge(tra_x, tra_med_df, by = c("year")),
-                                check.names = FALSE,
-                                row.names = NULL),
-                     class = "data.frame",
+    return(fpplateaus_data_frame(data.frame(base::merge(tra_x, tra_med_df, by = c("year")),
+                                            check.names = FALSE,
+                                            row.names = NULL),
                      differences = differences,
                      change_condition_as_proportion = change_condition,
                      filter_width = filter_width,
@@ -489,12 +488,11 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
     }
 
     row.names(df) <- NULL
-    attr(df, "CP_range_condition_min") <- CP_range_condition_min
-    attr(df, "CP_range_condition_max") <- CP_range_condition_max
-    attr(df, "MDMM_range_condition_min") <- MDMM_range_condition_min
-    attr(df, "MDMM_range_condition_max") <- MDMM_range_condition_max
-
-    return(df)
+    return(fpplateaus_data_frame(df,
+                                 CP_range_condition_min = CP_range_condition_min,
+                                 CP_range_condition_max = CP_range_condition_max,
+                                 MDMM_range_condition_min = MDMM_range_condition_min,
+                                 MDMM_range_condition_max = MDMM_range_condition_max))
 }
 
 ##----------------------------------------------------------------------
@@ -509,8 +507,8 @@ add_stall_indicators_probabilities <- function(df, stall_probability_thresholds)
         df[which(idx & df$stall_prob >= p), stall_year_colname] <- TRUE
     }
     row.names(df) <- NULL
-    attr(df, "stall_probability_thresholds") <- stall_probability_thresholds
-    return(df)
+    return(fpplateaus_data_frame(df,
+                                 stall_probability_thresholds = stall_probability_thresholds))
 }
 
 ##----------------------------------------------------------------------
@@ -608,8 +606,8 @@ add_stall_lengths <- function(df, min_stall_length,
     row.names(tmp) <- NULL
     attributes(tmp) <- c(attributes(tmp),
                          attributes(df)[!names(attributes(df)) %in% names(attributes(tmp))])
-    attr(tmp, "min_stall_length") <- min_stall_length
-    return(tmp)
+    return(fpplateaus_data_frame(tmp,
+                                 min_stall_length = min_stall_length))
 }
 
 ##----------------------------------------------------------------------

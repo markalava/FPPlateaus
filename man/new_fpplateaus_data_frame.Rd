@@ -5,7 +5,7 @@
 \title{Low-level constructor for class \code{fpplateaus_data_frame}.}
 \usage{
 new_fpplateaus_data_frame(
-  x,
+  x = data.frame(),
   differences = double(),
   change_condition_as_proportion = double(),
   filter_width = double(),

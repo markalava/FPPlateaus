@@ -223,7 +223,6 @@ make_all_results <- function(country_isos_to_process = NULL,
         ## -------** Merge and Save
 
         ## Merge annual changes and probabilities
-
         all_res_df <-
             dplyr::left_join(stall_prob_df,
                              annual_cp_change_df[, c("year", "indicator", "iso",
@@ -233,8 +232,16 @@ make_all_results <- function(country_isos_to_process = NULL,
                              by = c("iso", "indicator", "year"))
 
         ## Country info
-
         all_res_df <- dplyr::left_join(all_res_df, iso_all, by = "iso")
+
+        ## Class
+        all_res_df <- as_fpplateaus_data_frame(all_res_df)
+
+        ## Internal check
+        for (n in get_fpplateaus_attr_names()) {
+            if (!length(attr(all_res_df, n)))
+                stop("Attribute '", n, "' has not been set; something is wrong.")
+        }
 
         ## Save
         assign(paste0(this_mar, "_all_res_df"), all_res_df)

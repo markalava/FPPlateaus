@@ -2,24 +2,21 @@
 % Please edit documentation in R/s3_classes.R
 \name{fpplateaus_data_frame}
 \alias{fpplateaus_data_frame}
-\alias{is_demog_change_component_df}
 \title{Constructor for class \code{fpplateaus_data_frame}}
 \usage{
 fpplateaus_data_frame(
   x,
-  differences = double(),
-  change_condition_as_proportion = double(),
-  filter_width = double(),
-  denominator_count_filename = character(),
-  stall_probability_thresholds = double(),
-  CP_range_condition_min = double(),
-  CP_range_condition_max = double(),
-  MDMM_range_condition_min = double(),
-  MDMM_range_condition_max = double(),
-  min_stall_length = double()
+  differences = attr(x, "differences"),
+  change_condition_as_proportion = attr(x, "change_condition_as_proportion"),
+  filter_width = attr(x, "filter_width"),
+  denominator_count_filename = attr(x, "denominator_count_filename"),
+  stall_probability_thresholds = attr(x, "stall_probability_thresholds"),
+  CP_range_condition_min = attr(x, "CP_range_condition_min"),
+  CP_range_condition_max = attr(x, "CP_range_condition_max"),
+  MDMM_range_condition_min = attr(x, "MDMM_range_condition_min"),
+  MDMM_range_condition_max = attr(x, "MDMM_range_condition_max"),
+  min_stall_length = attr(x, "min_stall_length")
 )
-
-is_demog_change_component_df(x)
 }
 \value{
 An object of class \code{fpplateaus_data_frame}.

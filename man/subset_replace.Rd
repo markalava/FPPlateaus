@@ -24,6 +24,13 @@ These are methods for the subset operators and their companion
 replacement functions for objects of class
 \code{fpplateaus_data_frame}.
 }
+\section{Note}{
+
+R's usual simplification rules apply, namely, if you select a
+single column from an \code{fpplateaus_data_frame} it will be
+\dQuote{simplified} to a vector.
+}
+
 \seealso{
 \code{\link{fpplateaus_data_frame}}.
 }

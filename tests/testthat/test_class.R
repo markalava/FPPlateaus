@@ -20,23 +20,39 @@ test_that("Creation of 'fpplateus_data_frame's works.", {
 
     z <- fpplateaus_data_frame(data.frame(A = 1:4, B = 5:8),
                                differences = 1,
-                               change_condition_as_proportion = 1,
+                               change_condition_as_proportion = 1L,
                                filter_width = 1,
                                denominator_count_filename = "a",
                                stall_probability_thresholds = 1,
                                CP_range_condition_min = 1,
                                CP_range_condition_max = 1,
-                               MDMM_range_condition_min = 1,
+                               MDMM_range_condition_min = 1L,
                                MDMM_range_condition_max = 1,
                                min_stall_length = 1)
     expect_s3_class(z, "fpplateaus_data_frame")
+
+    ## Only some attributes set
+    w <- fpplateaus_data_frame(data.frame(A = 1:4, B = 5:8),
+                               differences = 1,
+                               change_condition_as_proportion = 1)
+    expect_s3_class(z, "fpplateaus_data_frame")
+
+    ## Make sure existing attribute values retained
+    u <- structure(data.frame(A = 1:4, B = 5:8),
+                   differences = as.double(999),
+                   denominator_count_filename = "TEST")
+    expect_identical(attr(u, "differences"), 999)
+    expect_identical(attr(u, "denominator_count_filename"), "TEST")
+    u <- fpplateaus_data_frame(u)
+    expect_identical(attr(u, "differences"), 999)
+    expect_identical(attr(u, "denominator_count_filename"), "TEST")
 })
 
 
-test_that("Validation of 'fpplateus_data_frame's works.", {
+test_that("Validation of 'fpplateus_data_frame's produces expected errors.", {
     expect_error(fpplateaus_data_frame(data.frame(A = 1:4, B = 5:8),
                                differences = "a",
-                               change_condition_as_proportion = 1,
+                               change_condition_as_proportion = 1L,
                                filter_width = 1,
                                denominator_count_filename = "a",
                                stall_probability_thresholds = 1,
@@ -45,25 +61,53 @@ test_that("Validation of 'fpplateus_data_frame's works.", {
                                MDMM_range_condition_min = 1,
                                MDMM_range_condition_max = 1,
                                min_stall_length = 1),
-                 "differences is not 'numeric'")
+                 "'differences' is not 'numeric'")
 
     expect_error(fpplateaus_data_frame(data.frame(A = 1:4, B = 5:8),
                                differences = 1,
                                change_condition_as_proportion = 1,
                                filter_width = 1,
                                denominator_count_filename = 1,
-                               stall_probability_thresholds = 1,
+                               stall_probability_thresholds = 1L,
                                CP_range_condition_min = 1,
                                CP_range_condition_max = 1,
                                MDMM_range_condition_min = 1,
                                MDMM_range_condition_max = 1,
                                min_stall_length = 1),
-                 "denominator_count_filename is not 'character'")
+                 "'denominator_count_filename' is not 'character'")
 })
 
 
 test_that("Subsetting of 'fpplateus_data_frame's works.", {
     x <- fpplateaus_data_frame(data.frame(A = 1:4, B = 5:8))
-    expect_s3_class(x[1:3,], "fpplateaus_data_frame")
-    expect_s3_class(x[,1:2], "fpplateaus_data_frame")
+
+    y <- x[1:3,]
+    expect_s3_class(y, "fpplateaus_data_frame")
+    expect_error(FPPlateaus:::validate_fpplateaus_data_frame(y), NA)
+
+    y <- x[,1:2]
+    expect_s3_class(y, "fpplateaus_data_frame")
+    expect_error(FPPlateaus:::validate_fpplateaus_data_frame(y), NA)
+
+    y <- x[1, ]
+    expect_s3_class(y, "fpplateaus_data_frame")
+    expect_error(FPPlateaus:::validate_fpplateaus_data_frame(y), NA)
+
+    ## This time, should only get a vector
+    y <- x[, 1]
+    expect_s3_class(y, NA)
 })
+
+
+test_that("Subset-replacing in 'fpplateus_data_frame's works.", {
+    x <- fpplateaus_data_frame(data.frame(A = 1:4, B = 5:8))
+    x[, 2] <- 9:12
+    expect_s3_class(x, "fpplateaus_data_frame")
+    expect_error(FPPlateaus:::validate_fpplateaus_data_frame(x), NA)
+
+    y <- fpplateaus_data_frame(data.frame(A = 1:4, B = 5:8))
+    y[2, ] <- 20:21
+    expect_s3_class(y, "fpplateaus_data_frame")
+    expect_error(FPPlateaus:::validate_fpplateaus_data_frame(y), NA)
+})
+
