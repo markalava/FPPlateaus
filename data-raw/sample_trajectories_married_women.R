@@ -11,7 +11,7 @@
 ### * Paths
 
 stopifnot(dir.exists(
-    S0_FPEM_results_dir <- file.path(Sys.getenv("SHAREPOINT_PDU_FPEM_RESULTS"), "2022")))
+    S0_FPEM_results_dir <- file.path(Sys.getenv("SHAREPOINT_PDU_FPEM_RESULTS"), "Released", "2022")))
 
 S0_mar_dir_name_mwra <- "15-49_mwra"
 
