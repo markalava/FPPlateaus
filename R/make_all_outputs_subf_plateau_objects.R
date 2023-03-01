@@ -463,29 +463,29 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
 
     idx <- df$indicator == "MetDemModMeth"
     if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
-        Level_condition_met[idx] <-
+        Level_condition_met[which(idx)] <-
             df[idx, "CP_in_range"] & df[idx, "MDMM_in_range"]
-    } else if (Level_condition_variant %in% c("v1 - SDG Only", "v2 - SDG Only")) {
-        Level_condition_met[idx] <-
-            df[idx, "CP_in_range"] & df[idx, "MDMM_in_range"]
+    } else if (identical(Level_condition_variant, "v1 - SDG Only")) {
+        Level_condition_met[which(idx)] <- df[idx, "MDMM_in_range"]
     }
-
-    df$Level_condition_met <- Level_condition_met
 
     if (identical(Level_condition_variant, "v2 - SDG Only")) {
 
         min_yr_tbl <- df |>
-            dplyr::select(iso, indicator, year, Level_condition_met) |>
-            dplyr::filter(Level_condition_met) |>
+            dplyr::select(iso, indicator, year, MDMM_in_range) |>
+            dplyr::filter(MDMM_in_range & indicator == "MetDemModMeth") |>
             dplyr::group_by(iso, indicator) |>
             dplyr::summarize(min_year = min(year))
 
-        df <- dplyr::left_join(df, min_yr_tbl, by = c("iso", "indicator"))
-        idx <- !is.na(df$Level_condition_met) & df$year >= df$min_year
-        df[which(idx), ]$Level_condition_met <- TRUE
-        df <- dplyr::select(df, -min_year)
-
+        idx <- dplyr::left_join(df[, c("iso", "indicator", "year")],
+                                min_yr_tbl[, c("iso", "indicator", "min_year")],
+                                by = c("iso", "indicator"))
+        idx_MDMM <- idx$indicator == "MetDemModMeth"
+        condition <- (idx$year >= idx$min_year)
+        Level_condition_met[which(idx_MDMM)] <- condition[which(idx_MDMM)]
     }
+
+    df$Level_condition_met <- Level_condition_met
 
     row.names(df) <- NULL
     return(fpplateaus_data_frame(df,
