@@ -383,9 +383,12 @@ make_all_plots <- function(results_output_dir,
                                 theme(text = element_text(size=8)) +
                                 labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
                         })
-                        op_device <- getOption("device"); options(device = pdf); dev.new()
+                        owd <- setwd(tempdir())
+                        op_device <- getOption("device");
+                        options(device = pdf); suppressMessages(dev.new())
                         ml <- gridExtra::marrangeGrob(pl, nrow = 3, ncol = 2, top = "")
-                        dev.off(); file.remove("Rplots.pdf"); options(device = op_device)
+                        dev.off(); options(device = op_device)
+                        setwd(owd)
                         ggplot2::ggsave(filename = file.path(filepaths_outputs$results_output_plots_dir, mar_group,
                                                              paste0("stall_prob_", prob * 100),
                                                              fname),
@@ -441,9 +444,12 @@ make_all_plots <- function(results_output_dir,
                                 ggplot2::theme(text = element_text(size=8)) +
                                 ggplot2::labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
                         })
-                        op_device <- getOption("device"); options(device = pdf); dev.new()
+                        owd <- setwd(tempdir())
+                        op_device <- getOption("device");
+                        options(device = pdf); suppressMessages(dev.new())
                         ml <- gridExtra::marrangeGrob(pl, nrow = 3, ncol = 2, top = "")
-                        dev.off(); file.remove("Rplots.pdf"); options(device = op_device)
+                        dev.off(); options(device = op_device)
+                        setwd(owd)
                         ggplot2::ggsave(filename = file.path(filepaths_outputs$results_output_plots_dir,
                                                              mar_group, paste0("stall_prob_", prob * 100),
                                                              fname),

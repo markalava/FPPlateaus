@@ -33,12 +33,12 @@ S0_denominator_count_filename <- "number_of_women_15-49_20220608.csv"
 
 ## Countries to use in testing.
 ##
-## *NOTE*: This is hard-coded in other places, including other
-## data-raw files and tests/testthat files. Do *not* change here
-## without checking other places.
+## *NOTE*: This is hard-coded in other places, including data-raw
+## files and tests/testthat files. Do *not* change here without
+## checking other places.
 
 isos_test_countries <- c(566, 270, 716)
-                                #c("Nigeria", "Gambia", "Zimbabwe")
+                                #c("Nigeria", "Gambia", "Zimbabwe") #HARD-CODED ELSEWHERE!
 
 ##-----------------------------------------------------------------------------
 ## * Runs
