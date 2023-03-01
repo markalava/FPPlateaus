@@ -458,19 +458,41 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
 
     Level_condition_met <- rep(NA, nrow(df))
 
-    idx <- df$indicator %in% c("Modern", "Unmet")
-    Level_condition_met[idx] <- df[idx, "CP_in_range"]
-
-    idx <- df$indicator == "MetDemModMeth"
     if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
+        ## Modern, Unmet
+        idx <- df$indicator %in% c("Modern", "Unmet")
+        Level_condition_met[idx] <- df[idx, "CP_in_range"]
+
+        ## Met Demand Modern
+        idx <- df$indicator == "MetDemModMeth"
         Level_condition_met[which(idx)] <-
             df[idx, "CP_in_range"] & df[idx, "MDMM_in_range"]
+
     } else if (identical(Level_condition_variant, "v1 - SDG Only")) {
+        ## Modern, Unmet
+        idx <- df$indicator %in% c("Modern", "Unmet")
+        Level_condition_met[idx] <- df[idx, "CP_in_range"]
+
+        ## Met Demand Modern
+        idx <- df$indicator == "MetDemModMeth"
         Level_condition_met[which(idx)] <- df[idx, "MDMM_in_range"]
-    }
 
-    if (identical(Level_condition_variant, "v2 - SDG Only")) {
+    } else if (identical(Level_condition_variant, "v2 - SDG Only")) {
+        ## Modern, Unmet
+        min_yr_tbl <- df |>
+            dplyr::select(iso, indicator, year, CP_in_range) |>
+            dplyr::filter(CP_in_range & indicator %in% c("Modern", "Unmet")) |>
+            dplyr::group_by(iso, indicator) |>
+            dplyr::summarize(min_year = min(year))
 
+        idx <- dplyr::left_join(df[, c("iso", "indicator", "year")],
+                                min_yr_tbl[, c("iso", "indicator", "min_year")],
+                                by = c("iso", "indicator"))
+        idx_Mod_Unmet <- idx$indicator %in% c("Modern", "Unmet")
+        condition <- (idx$year >= idx$min_year)
+        Level_condition_met[which(idx_Mod_Unmet)] <- condition[which(idx_Mod_Unmet)]
+
+        ## Met Demand Modern
         min_yr_tbl <- df |>
             dplyr::select(iso, indicator, year, MDMM_in_range) |>
             dplyr::filter(MDMM_in_range & indicator == "MetDemModMeth") |>
