@@ -37,6 +37,21 @@ NULL
 }
 
 
+##' @rdname subset_replace
+##' @export
+subset.fpplateaus_data_frame <- function(x, subset, select, drop = FALSE, ...) {
+    get_att <- attributes(x)[get_fpplateaus_attr_names()]
+    x <- NextMethod()
+    ## If the subset results in a 'data.frame', make sure the
+    ## 'fpplateaus_data_frame' attributes and class are retained.
+    if (is.data.frame(x))
+        return(do.call("fpplateaus_data_frame", c(list(x = x), get_att)))
+    ## If the subset results in a vector, follow standard R behaviour
+    ## and return a vector without all the extra attributes.
+    else return(x)
+}
+
+
 ##' @rdname coerce_fpplateaus_data_frame
 ##' @export
 as.data.frame.fpplateaus_data_frame <- function(x, row.names = NULL, ...) {

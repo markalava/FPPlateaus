@@ -111,3 +111,24 @@ test_that("Subset-replacing in 'fpplateus_data_frame's works.", {
     expect_error(FPPlateaus:::validate_fpplateaus_data_frame(y), NA)
 })
 
+
+test_that("Method for `base::subset` works.", {
+    x <- fpplateaus_data_frame(data.frame(A = c(0,1,1,4,4,4), B = 1:6, C = 7:12))
+
+    y <- subset(x, A == 1)
+    expect_s3_class(y, "fpplateaus_data_frame")
+    expect_error(FPPlateaus:::validate_fpplateaus_data_frame(y), NA)
+
+    y <- subset(x, select = c("A", "B"))
+    expect_s3_class(y, "fpplateaus_data_frame")
+    expect_error(FPPlateaus:::validate_fpplateaus_data_frame(y), NA)
+
+    y <- subset(x, A == 1, select = c("A", "B"))
+    expect_s3_class(y, "fpplateaus_data_frame")
+    expect_error(FPPlateaus:::validate_fpplateaus_data_frame(y), NA)
+
+    ## This time, should only get a vector
+    y <- subset(x, A == 0)
+    expect_s3_class(y, NA)
+})
+
