@@ -349,16 +349,8 @@ make_all_plots <- function(results_output_dir,
             message("  'Just One Indicator All Countries' plots.")
 
             for (prob in stall_probability_thresholds) {
-                for (yvar in c("stall_prob"## , "annual_change_50%"
-                               )) {
-                    for (indicator in c(## "MetDemModMeth",
-                                        "CP_Modern")) {
-
-### TEMP !!!
-message("     'prob' = '", prob, "', 'yvar' = '", yvar, "', 'indicator' = '", indicator, "'.")
-##if (identical(prob, 0.5) && identical(yvar, "stall_prob") && identical(indicator, "CP_Modern")) browser()
-### TEMP ...
-
+                for (yvar in c("stall_prob", "annual_change_50%")) {
+                    for (indicator in c("MetDemModMeth", "CP_Modern")) {
                         fname <- switch(yvar,
                                         stall_prob = paste0(indicator, "_plateau_probabilities.pdf"),
                                         `annual_change_50%` = paste0(indicator, "_annual_changes.pdf"))
@@ -371,10 +363,6 @@ message("     'prob' = '", prob, "', 'yvar' = '", yvar, "', 'indicator' = '", in
                         indicator_value <- switch(indicator,
                                                   MetDemModMeth = "MetDemModMeth",
                                                   CP_Modern = "Modern")
-
-### for (z in unique(get(paste0(mar_group, "_all_res_df"))$iso)) {
-### message("          ISO ('z') = '", z, "'.")
-### if (identical(z, 124)) browser()
                         pl <- lapply(unique(get(paste0(mar_group, "_all_res_df"))$iso), function(z) {
                             plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")),
                                                      iso == z & indicator == indicator_value)
@@ -393,7 +381,6 @@ message("     'prob' = '", prob, "', 'yvar' = '", yvar, "', 'indicator' = '", in
                                 theme(text = element_text(size=8)) +
                                 labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
                         })
-### }
                         ## OR:
                         ## temp_filename <- tempfile(pattern = "temp_plot_", tmpdir = ".", fileext = ".pdf")
                         ## dev(file = temp_filename)
@@ -554,11 +541,7 @@ message("     'prob' = '", prob, "', 'yvar' = '", yvar, "', 'indicator' = '", in
                      # 'plot_in_parallel()'.
 
         if (is.null(ncores)) {
-            for (i in ## seq_len(nplots)
-### TEMP !!!
-2:nplots
-### TEMP ...
-) {
+            for (i in seq_len(nplots)) {
 
                 plot_in_parallel(i, mar_group = this_mar_group, use_ggpattern = this_use_ggpattern)
             }
