@@ -15,7 +15,8 @@ fpplateaus_data_frame(
   CP_range_condition_max = attr(x, "CP_range_condition_max"),
   MDMM_range_condition_min = attr(x, "MDMM_range_condition_min"),
   MDMM_range_condition_max = attr(x, "MDMM_range_condition_max"),
-  min_stall_length = attr(x, "min_stall_length")
+  min_stall_length = attr(x, "min_stall_length"),
+  Level_condition_variant = attr(x, "Level_condition_variant")
 )
 }
 \value{

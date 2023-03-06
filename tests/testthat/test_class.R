@@ -127,8 +127,13 @@ test_that("Method for `base::subset` works.", {
     expect_s3_class(y, "fpplateaus_data_frame")
     expect_error(FPPlateaus:::validate_fpplateaus_data_frame(y), NA)
 
-    ## This time, should only get a vector
+    ## Subset will return a data frame by default
     y <- subset(x, A == 0)
+    expect_s3_class(y, "fpplateaus_data_frame")
+    expect_error(FPPlateaus:::validate_fpplateaus_data_frame(y), NA)
+
+    ## This time, should only get a vector
+    y <- subset(x, A == 0, drop = TRUE)
     expect_s3_class(y, NA)
 })
 

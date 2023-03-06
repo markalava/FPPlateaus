@@ -37,9 +37,10 @@ NULL
 }
 
 
+
 ##' @rdname subset_replace
 ##' @export
-subset.fpplateaus_data_frame <- function(x, subset, select, drop = FALSE, ...) {
+subset.fpplateaus_data_frame <- function(x, ...) {
     get_att <- attributes(x)[get_fpplateaus_attr_names()]
     x <- NextMethod()
     ## If the subset results in a 'data.frame', make sure the

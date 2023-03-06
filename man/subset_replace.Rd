@@ -3,12 +3,21 @@
 \name{subset_replace}
 \alias{subset_replace}
 \alias{[.fpplateaus_data_frame}
+\alias{subset.fpplateaus_data_frame}
 \title{Extract or Replace Parts of a \code{fpplateaus_data_frame}}
 \usage{
 \method{[}{fpplateaus_data_frame}(x, i, j, drop)
+
+\method{subset}{fpplateaus_data_frame}(x, ...)
 }
 \arguments{
 \item{x}{data frame.}
+
+\item{i, j, ...}{elements to extract or replace.  For \code{[} and
+    \code{[[}, these are \code{numeric} or \code{character} or, for
+    \code{[} only, empty or \code{logical}.  Numeric values are coerced to integer as if
+    by \code{\link[base]{as.integer}}.  For replacement by \code{[}, a logical
+    matrix is allowed.}
 
 \item{drop}{logical.  If \code{TRUE} the result is coerced to the
     lowest possible dimension.  The default is to drop if only one

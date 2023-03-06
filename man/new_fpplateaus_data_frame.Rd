@@ -16,6 +16,7 @@ new_fpplateaus_data_frame(
   MDMM_range_condition_min = double(),
   MDMM_range_condition_max = double(),
   min_stall_length = double(),
+  Level_condition_variant = character(),
   ...,
   class = character()
 )
