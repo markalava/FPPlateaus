@@ -450,61 +450,76 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
 
     Level_condition_variant <- match.arg(Level_condition_variant)
 
-    df <- dplyr::mutate(df,
-                        CP_in_range = Modern_median > CP_range_condition_min &
-                            Modern_median <= CP_range_condition_max,
-                        MDMM_in_range = MetDemModMeth_median > MDMM_range_condition_min &
-                            MetDemModMeth_median <= MDMM_range_condition_max)
+    if (Level_condition_variant %in% c("v1 - MCP+SDG", "v1 - SDG Only")) {
+        df <- dplyr::mutate(df,
+                            CP_in_range = Modern_median > CP_range_condition_min &
+                                Modern_median <= CP_range_condition_max,
+                            MDMM_in_range = MetDemModMeth_median > MDMM_range_condition_min &
+                                MetDemModMeth_median <= MDMM_range_condition_max)
+    } else if (identical(Level_condition_variant, "v2 - SDG Only")) {
+        ## Under the assumption that CP/Unmet/MDMM must have started
+        ## at zero level condition will foreever be satisfied once the
+        ## lower threshold is breached. If we don't do this, then the
+        ## period of observation has an unwanted effect: if indicator
+        ## was above the max threshold before first year of obs then
+        ## the level condition will never be satisfied. If indicator
+        ## breaches upper limit inside period of obs then level
+        ## condition will be foreever more satisfied. The only real
+        ## difference between the two is the first year obs were
+        ## available, which is arbitrary.
+        df <- dplyr::mutate(df,
+                            CP_in_range = Modern_median > CP_range_condition_min,
+                            MDMM_in_range = MetDemModMeth_median > MDMM_range_condition_min)
+    }
 
     Level_condition_met <- rep(NA, nrow(df))
 
     if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
         ## Modern, Unmet
-        idx <- df$indicator %in% c("Modern", "Unmet")
+        idx <- which(df$indicator %in% c("Modern", "Unmet"))
         Level_condition_met[idx] <- df[idx, "CP_in_range"]
 
         ## Met Demand Modern
-        idx <- df$indicator == "MetDemModMeth"
-        Level_condition_met[which(idx)] <-
+        idx <- which(df$indicator == "MetDemModMeth")
+        Level_condition_met[idx] <-
             df[idx, "CP_in_range"] & df[idx, "MDMM_in_range"]
 
     } else if (identical(Level_condition_variant, "v1 - SDG Only")) {
         ## Modern, Unmet
-        idx <- df$indicator %in% c("Modern", "Unmet")
+        idx <- which(df$indicator %in% c("Modern", "Unmet"))
         Level_condition_met[idx] <- df[idx, "CP_in_range"]
 
         ## Met Demand Modern
-        idx <- df$indicator == "MetDemModMeth"
-        Level_condition_met[which(idx)] <- df[idx, "MDMM_in_range"]
+        idx <- which(df$indicator == "MetDemModMeth")
+        Level_condition_met[idx] <- df[idx, "MDMM_in_range"]
 
     } else if (identical(Level_condition_variant, "v2 - SDG Only")) {
-        ## Modern, Unmet
+        ## First Pass: Set to 'in range' values as for previous versions.
+        ## Modern, Unmet: First pass
+        idx <- which(df$indicator %in% c("Modern", "Unmet"))
+        Level_condition_met[idx] <- df[idx, "CP_in_range"]
+
+        ## Met Demand Modern: First pass
+        idx <- which(df$indicator == "MetDemModMeth")
+        Level_condition_met[idx] <- df[idx, "MDMM_in_range"]
+
+        ## Second Pass: Persist 'TRUE' values after first one
+        ## Modern, Unmet: Second pass
         min_yr_tbl <- df |>
-            dplyr::select(iso, indicator, year, CP_in_range) |>
-            dplyr::filter(CP_in_range & indicator %in% c("Modern", "Unmet")) |>
+            dplyr::select(iso, indicator, year, CP_in_range, MDMM_in_range) |>
+            dplyr::filter((CP_in_range & indicator %in% c("Modern", "Unmet")) |
+                          (MDMM_in_range & indicator == "MetDemModMeth")) |>
             dplyr::group_by(iso, indicator) |>
             dplyr::summarize(min_year = min(year))
-
-        idx <- dplyr::left_join(df[, c("iso", "indicator", "year")],
-                                min_yr_tbl[, c("iso", "indicator", "min_year")],
-                                by = c("iso", "indicator"))
-        idx_Mod_Unmet <- idx$indicator %in% c("Modern", "Unmet")
-        condition <- (idx$year >= idx$min_year)
-        Level_condition_met[which(idx_Mod_Unmet)] <- condition[which(idx_Mod_Unmet)]
-
-        ## Met Demand Modern
-        min_yr_tbl <- df |>
-            dplyr::select(iso, indicator, year, MDMM_in_range) |>
-            dplyr::filter(MDMM_in_range & indicator == "MetDemModMeth") |>
-            dplyr::group_by(iso, indicator) |>
-            dplyr::summarize(min_year = min(year))
-
-        idx <- dplyr::left_join(df[, c("iso", "indicator", "year")],
-                                min_yr_tbl[, c("iso", "indicator", "min_year")],
-                                by = c("iso", "indicator"))
-        idx_MDMM <- idx$indicator == "MetDemModMeth"
-        condition <- (idx$year >= idx$min_year)
-        Level_condition_met[which(idx_MDMM)] <- condition[which(idx_MDMM)]
+        if (nrow(min_yr_tbl)) {
+            idx <- dplyr::left_join(df[, c("iso", "indicator", "year")],
+                                    min_yr_tbl[, c("iso", "indicator", "min_year")],
+                                    by = c("iso", "indicator"))
+            idx <- idx$indicator %in% c("Modern", "Unmet", "MetDemModMeth") &
+                !is.na(idx$min_year) &
+                idx$year >= idx$min_year
+            Level_condition_met[idx] <- TRUE
+        }
     }
 
     df$Level_condition_met <- Level_condition_met
