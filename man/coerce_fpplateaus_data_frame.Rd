@@ -20,7 +20,7 @@ as_fpplateaus_data_frame(x, ...)
 
 is_demog_change_component_df(x)
 
-\method{as.data.frame}{fpplateaus_data_frame}(x, row.names = NULL, ...)
+\method{as.data.frame}{fpplateaus_data_frame}(x, ...)
 }
 \arguments{
 \item{x}{An object to coerce or check.}
