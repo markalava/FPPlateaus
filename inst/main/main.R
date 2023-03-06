@@ -41,20 +41,20 @@ for (this_smooth in c("local_linear", "annual_difference", "moving_average")) {
             " ", toupper(this_smooth),
             "\n======================================================================\n")
 
-    for (this_change_pc in c(0.1, 0.3, 0.5)) {
+    for (this_change_pc in c(0.5, 0.3, 0.1)) {
         message("\n\n\n----------------------------------------------------------------------\n",
                 " ", toupper(this_change_pc), " percent threshold",
                 "\n----------------------------------------------------------------------\n")
         results_output_dir <-
             make_all_results(smoothing_method = this_smooth,
                              change_condition_percent = this_change_pc,
-                             results_dir_name = "results_v1", # Same method as 'make_results'. Compare to make sure package produces same results as old scripts.
+                             results_dir_name = "results_v2_new_level_cond", # Once in, forever in.
                                  FPEM_results_dir = S0_FPEM_results_dir,
                                  FPEM_results_subdir_names = list(wra = S0_mar_dir_name_wra,
                                                                   mwra = S0_mar_dir_name_mwra,
                                                                   uwra = S0_mar_dir_name_uwra),
-                                 denominator_count_filename = S0_denominator_count_filename)
-
-        make_all_plots(results_output_dir)
+                             denominator_count_filename = S0_denominator_count_filename,
+                             Level_condition_variant = "v2 - SDG Only")
+        make_all_plots(results_output_dir, use_ggpattern = FALSE)
     }
 }
