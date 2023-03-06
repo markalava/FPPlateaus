@@ -318,7 +318,6 @@ stall_plot <- function(plot_df, iso_all,
                 gp <- gp + geom_polygon(data = indicator_not_in_range_df,
                                         aes(x = x, y = y, group = id,
                                             fill = "Level condition\nnot met"),
-                                        fill = "darkgray",
                                         colour = NA,
                                         alpha = fill_alpha)
             }
