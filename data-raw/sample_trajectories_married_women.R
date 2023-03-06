@@ -22,13 +22,7 @@ stopifnot(dir.exists(
 ### * Constants
 
 ## Countries to use in testing.
-##
-## *NOTE*: This is hard-coded in other places, including other
-## data-raw files and tests/testthat files. Do *not* change here
-## without checking other places.
-
-isos_test_countries <- c(566, 270, 716)
-                                #c("Nigeria", "Gambia", "Zimbabwe")
+source(here::here("data-raw", "isos_test_countries.R"))
 
 ###-----------------------------------------------------------------------------
 ### * Trajectories
