@@ -130,7 +130,7 @@ make_all_results <- function(country_isos_to_process = NULL,
         ## Extract and summarize posterior trajectories
 
         if (!is.null(ncores)) {
-            cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
+            cl <- parallel::makeCluster(min(ncores, length(country_isos_to_process)))
             parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
                                                     "this_run_name", "this_output_dir",
                                                     "smooth_type", "smoothing_method", "min_stall_length",
@@ -198,7 +198,7 @@ make_all_results <- function(country_isos_to_process = NULL,
         ## Extract and summarize posterior trajectories
 
         if (!is.null(ncores)) {
-            cl <- parallel::makeCluster(min(ncores, max(1, floor(length(country_isos_to_process) / 4))))
+            cl <- parallel::makeCluster(min(ncores, length(country_isos_to_process)))
             parallel::clusterExport(cl, varlist = c("make_q_diff_df", "filepaths_inputs",
                                                     "denominator_count_filename", ".testing"),
                                     envir = environment())
@@ -349,8 +349,15 @@ make_all_plots <- function(results_output_dir,
             message("  'Just One Indicator All Countries' plots.")
 
             for (prob in stall_probability_thresholds) {
-                for (yvar in c("stall_prob", "annual_change_50%")) {
-                    for (indicator in c("MetDemModMeth", "CP_Modern")) {
+                for (yvar in c("stall_prob"## , "annual_change_50%"
+                               )) {
+                    for (indicator in c(## "MetDemModMeth",
+                                        "CP_Modern")) {
+
+### TEMP !!!
+message("     'prob' = '", prob, "', 'yvar' = '", yvar, "', 'indicator' = '", indicator, "'.")
+##if (identical(prob, 0.5) && identical(yvar, "stall_prob") && identical(indicator, "CP_Modern")) browser()
+### TEMP ...
 
                         fname <- switch(yvar,
                                         stall_prob = paste0(indicator, "_plateau_probabilities.pdf"),
@@ -365,6 +372,9 @@ make_all_plots <- function(results_output_dir,
                                                   MetDemModMeth = "MetDemModMeth",
                                                   CP_Modern = "Modern")
 
+### for (z in unique(get(paste0(mar_group, "_all_res_df"))$iso)) {
+### message("          ISO ('z') = '", z, "'.")
+### if (identical(z, 124)) browser()
                         pl <- lapply(unique(get(paste0(mar_group, "_all_res_df"))$iso), function(z) {
                             plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")),
                                                      iso == z & indicator == indicator_value)
@@ -383,8 +393,14 @@ make_all_plots <- function(results_output_dir,
                                 theme(text = element_text(size=8)) +
                                 labs(subtitle = paste0("Criterion: plateau probability exceeds ", prob * 100, "%"))
                         })
+### }
+                        ## OR:
+                        ## temp_filename <- tempfile(pattern = "temp_plot_", tmpdir = ".", fileext = ".pdf")
+                        ## dev(file = temp_filename)
+                        ## ...
+                        ## file.remove(temp_filename)
                         owd <- setwd(tempdir())
-                        op_device <- getOption("device");
+                        op_device <- getOption("device")
                         options(device = pdf); suppressMessages(dev.new())
                         ml <- gridExtra::marrangeGrob(pl, nrow = 3, ncol = 2, top = "")
                         dev.off(); options(device = op_device)
@@ -538,7 +554,12 @@ make_all_plots <- function(results_output_dir,
                      # 'plot_in_parallel()'.
 
         if (is.null(ncores)) {
-            for (i in seq_len(nplots)) {
+            for (i in ## seq_len(nplots)
+### TEMP !!!
+2:nplots
+### TEMP ...
+) {
+
                 plot_in_parallel(i, mar_group = this_mar_group, use_ggpattern = this_use_ggpattern)
             }
         } else {

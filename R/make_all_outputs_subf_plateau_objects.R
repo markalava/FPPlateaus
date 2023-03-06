@@ -529,7 +529,8 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
                                  CP_range_condition_min = CP_range_condition_min,
                                  CP_range_condition_max = CP_range_condition_max,
                                  MDMM_range_condition_min = MDMM_range_condition_min,
-                                 MDMM_range_condition_max = MDMM_range_condition_max))
+                                 MDMM_range_condition_max = MDMM_range_condition_max,
+                                 Level_condition_variant = Level_condition_variant))
 }
 
 ##----------------------------------------------------------------------

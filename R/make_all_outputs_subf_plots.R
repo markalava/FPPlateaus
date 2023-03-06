@@ -40,6 +40,7 @@ stall_plot <- function(plot_df, iso_all,
                        CP_range_condition_max = attr(plot_df, "CP_range_condition_max"),
                        MDMM_range_condition_min = attr(plot_df, "MDMM_range_condition_min"),
                        MDMM_range_condition_max = attr(plot_df, "MDMM_range_condition_max"),
+                       Level_condition_variant = attr(plot_df, "Level_condition_variant"),
                        mark_all_plateaus = FALSE, # 'FALSE' = Do NOT mark plateaus when level condition fails
                        facet_by_indicator = length(unique(plot_df$indicator)) > 1,
                        CP_abbrev = if (facet_by_indicator) { "FP Indicator" } else { "MCP" },
@@ -55,13 +56,14 @@ stall_plot <- function(plot_df, iso_all,
                        use_ggpattern = TRUE) {
 
     null_arg_msg <- function(x) {
-        paste0("Argument '", x, "' is 'NULL'. Check that 'attr(plot_df, ", x, ")' is not 'NULL'. It will be if you used 'base::subset' to create 'plot_df' (use 'dplyr::filter' instead).")
+        paste0("Argument '", x, "' is 'NULL'. Check that 'attr(plot_df, ", x, ")' is not 'NULL'.")
     }
     if (is.null(min_stall_length)) stop(null_arg_msg("min_stall_length"))
     if (is.null(CP_range_condition_min)) stop(null_arg_msg("CP_range_condition_min"))
     if (is.null(CP_range_condition_max)) stop(null_arg_msg("CP_range_condition_max"))
     if (is.null(MDMM_range_condition_min)) stop(null_arg_msg("MDMM_range_condition_min"))
     if (is.null(MDMM_range_condition_max)) stop(null_arg_msg("MDMM_range_condition_max"))
+    if (is.null(Level_condition_variant)) stop(null_arg_msg("Level_condition_variant"))
 
     ## Set up
     xvar <- match.arg(xvar)
@@ -228,8 +230,12 @@ stall_plot <- function(plot_df, iso_all,
                                              yintercept = MDMM_range_condition_max * 100)
             }
             gp <- gp +
-                geom_hline(data = ref_line_df_1, aes(yintercept = yintercept), linetype = 2, col = "blue") +
-                geom_hline(data = ref_line_df_2, aes(yintercept = yintercept), linetype = 2, col = "blue")
+                geom_hline(data = ref_line_df_1, aes(yintercept = yintercept), linetype = 2, col = "blue")
+
+            if (!identical(Level_condition_variant, "v2 - SDG Only")) {
+                gp <- gp +
+                    geom_hline(data = ref_line_df_2, aes(yintercept = yintercept), linetype = 2, col = "blue")
+            }
 
         } else if (identical(yvar, "stall_prob")) {
 

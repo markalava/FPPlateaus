@@ -4,13 +4,13 @@
 ## Attribute names
 get_fpplateaus_attr_names_numeric <- function() {
     c("differences", "change_condition_as_proportion",
-                    "filter_width", "stall_probability_thresholds",
-                    "CP_range_condition_min", "CP_range_condition_max",
-                    "MDMM_range_condition_min", "MDMM_range_condition_max",
+      "filter_width", "stall_probability_thresholds",
+      "CP_range_condition_min", "CP_range_condition_max",
+      "MDMM_range_condition_min", "MDMM_range_condition_max",
       "min_stall_length")
 }
 
-get_fpplateaus_attr_names_character <- function() { c("denominator_count_filename") }
+get_fpplateaus_attr_names_character <- function() { c("denominator_count_filename", "Level_condition_variant") }
 
 get_fpplateaus_attr_names <- function() {
     c(get_fpplateaus_attr_names_numeric(), get_fpplateaus_attr_names_character())
@@ -42,6 +42,7 @@ new_fpplateaus_data_frame <-
              MDMM_range_condition_min = double(),
              MDMM_range_condition_max = double(),
              min_stall_length = double(),
+             Level_condition_variant = character(),
              ..., class = character()) {
         if (missing(x)) x <- data.frame()
         stopifnot(is.data.frame(x))
@@ -57,6 +58,7 @@ new_fpplateaus_data_frame <-
                   MDMM_range_condition_min = MDMM_range_condition_min,
                   MDMM_range_condition_max = MDMM_range_condition_max,
                   min_stall_length = min_stall_length,
+                  Level_condition_variant = Level_condition_variant,
                   ...,
                   class = c(class, "fpplateaus_data_frame", "data.frame"))
     }
@@ -116,7 +118,8 @@ fpplateaus_data_frame <- function(x,
                                   CP_range_condition_max = attr(x, "CP_range_condition_max"),
                                   MDMM_range_condition_min = attr(x, "MDMM_range_condition_min"),
                                   MDMM_range_condition_max = attr(x, "MDMM_range_condition_max"),
-                                  min_stall_length = attr(x, "min_stall_length")) {
+                                  min_stall_length = attr(x, "min_stall_length"),
+                                  Level_condition_variant = attr(x, "Level_condition_variant")) {
 
     stopifnot(is.data.frame(x))
 
@@ -140,7 +143,8 @@ fpplateaus_data_frame <- function(x,
                                   CP_range_condition_max = CP_range_condition_max,
                                   MDMM_range_condition_min = MDMM_range_condition_min,
                                   MDMM_range_condition_max = MDMM_range_condition_max,
-                                  min_stall_length = min_stall_length))
+                                  min_stall_length = min_stall_length,
+                                  Level_condition_variant = Level_condition_variant))
 }
 
 
