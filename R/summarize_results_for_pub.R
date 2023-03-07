@@ -75,16 +75,14 @@ get_fp_plateau_countries <- function(x,
 ##' results, i.e., countries with neither a stall nor a plateau are
 ##' included in the input.
 ##'
-##' @param x \code{\link{fpplateaus_data_frame}} loaded from e.g., 'wra_all_res.rda'.
-##' @param stall_probability,indicator,year_lim See
-##'     \code{\link{get_fp_plateau_countries}}.
-##' @param CP_plateau_type_break,MDMM_plateau_type_break Breakpoint in
+##' @param CP_plateau_type_break,MDMM_plateau_type_break \emph{Obsolete: leave at default.} Breakpoint in
 ##'     indicator range to use to generate two plateau types.
-##' @return Data frame.
+##' @inheritParams get_fp_plateau_countries
+##' @return Data frame with extra attribute \code{"FP_plateau_types"}.
 ##' @author Mark Wheldon
 ##' @export
 make_main_results_df <- function(x,
-                                 stall_probability, indicator, year_lim,
+                                 stall_probability, indicator, year_lim = NULL,
                                  CP_plateau_type_break = 0.5,
                                  MDMM_plateau_type_break = 0.75) {
 
@@ -238,7 +236,7 @@ make_n_stall_years_list <- function(x) {
                          Overlap_n_stall_years = sum((stall_TFR | stall_TFR_moderate | stall_TFR_weak) &
                                                      FP_plateau),
                          Overlap_n_stall_years_pct = round(100 * Overlap_n_stall_years / Either_n_stall_years, 1))|>
-        dplyr::left_join(pearson_phi_df)
+        dplyr::left_join(pearson_phi_df, by = c("iso", "name", "region"))
 
 
     ## World Summary --------------------
@@ -247,7 +245,7 @@ make_n_stall_years_list <- function(x) {
         x |>
         dplyr::filter(!is.na(FP_plateau_type) | !is.na(TFR_stall_type)) |>
         dplyr::filter(Level_condition_met) |>
-        dplyr::summarize(pearson_phi = cor(FP_plateau, stall_TFR_any))
+        dplyr::summarize(pearson_phi = pearson_phi(FP_plateau, stall_TFR_any))
 
     n_stall_years_world_summary_df <-
         n_stall_years_df |>
@@ -300,7 +298,7 @@ make_n_stall_years_list <- function(x) {
         x |>
         dplyr::filter(Level_condition_met) |>
         dplyr::group_by(region) |>
-        dplyr::summarize(pearson_phi = cor(FP_plateau, stall_TFR_any))
+        dplyr::summarize(pearson_phi = pearson_phi(FP_plateau, stall_TFR_any))
 
     ## Don't do this. Too many countries have 'NA' correlations.
     ## pearson_phi_region_mean_df <-
@@ -328,7 +326,7 @@ make_n_stall_years_list <- function(x) {
                          Either_n_stall_years_mean = mean(Either_n_stall_years),
                          Overlap_n_stall_years_mean = mean(Overlap_n_stall_years),
                          Overlap_n_stall_years_pct_mean = round(100 * mean(Overlap_n_stall_years / Either_n_stall_years, na.rm = TRUE), 1)) |>
-        dplyr::left_join(pearson_phi_region_sum_df) |>
+        dplyr::left_join(pearson_phi_region_sum_df, by = "region") |>
         dplyr::bind_rows(n_stall_years_world_summary_df)
 
     n_stall_years_region_df <-
@@ -386,7 +384,7 @@ make_all_results_list <- function(x, stall_probability = 0.8, indicator = "Moder
 
 ##' Make table reporting number of countries with at least one plateau year
 ##'
-##' @param x Result of \code{\link{make_n_stall_years_list}}.
+##' @param x Result of \code{\link{make_all_results_list}}.
 ##' @return Integer.
 ##' @author Mark Wheldon
 ##' @export
@@ -398,7 +396,7 @@ count_n_plateau_countries <- function(x) {
 
 ##' Make table reporting number of years of plateaus by country
 ##'
-##' @param x Result of \code{\link{make_n_stall_years_list}}.
+##' @param x Result of \code{\link{make_all_results_list}}.
 ##' @param rename Character string; new name for the \dQuote{value} column.
 ##' @return Data frame that can be used as a table.
 ##' @author Mark Wheldon

@@ -30,6 +30,18 @@ logitSafer <- function(x) {
     log(x/(1-x))
 }
 
+##' @export
+pearson_phi <- function(x, y) {
+    tbl <- table(x, y)
+    if (!identical(dim(tbl), c(2L, 2L))) return(NA)
+    P1 <- sum(tbl[2,])
+    Q1 <- sum(tbl[1,])
+    P2 <- sum(tbl[,1])
+    Q2 <- sum(tbl[,2])
+    (tbl[1, 1] * tbl[2, 2] - tbl[1, 2] * tbl[2, 1]) / (
+        sqrt( P1 * Q1 * P2 * Q2 ))
+}
+
 
 ###-----------------------------------------------------------------------------
 ### * Prepare Data

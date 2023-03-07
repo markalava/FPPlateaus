@@ -7,7 +7,7 @@
 count_n_plateau_countries(x)
 }
 \arguments{
-\item{x}{Result of \code{\link{make_n_stall_years_list}}.}
+\item{x}{Result of \code{\link{make_all_results_list}}.}
 }
 \value{
 Integer.

@@ -7,7 +7,7 @@
 make_tbl_country_n_plateau_years(x, rename = NULL)
 }
 \arguments{
-\item{x}{Result of \code{\link{make_n_stall_years_list}}.}
+\item{x}{Result of \code{\link{make_all_results_list}}.}
 
 \item{rename}{Character string; new name for the \dQuote{value} column.}
 }
