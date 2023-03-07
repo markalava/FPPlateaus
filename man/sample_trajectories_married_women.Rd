@@ -7,14 +7,7 @@
 \format{
 \subsection{\code{sample_trajectories_married_women}}{
 
-A list of arrays. Each list element contains an array of
-trajectories for a single country. Element are names are the ISO
-numeric country codes. Only three countries are included: Nigeria
-(ISO 566), Gambia (ISO 270), Zimbabwe (ISO 716). Each array has
-\code{dim} \verbatim{\link{61, 6, 10}}. The first dimension is the
-year, the second the indicator, and the third indexes
-trajectory. There are ten trajectories in each array (i.e,. the
-size of the third dimension is 10).
+See \code{link{sample_trajectories_all_women}}.
 }
 }
 \source{
