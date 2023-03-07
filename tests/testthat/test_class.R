@@ -3,7 +3,7 @@ test_that("Creation of 'fpplateus_data_frame's works.", {
     x <- fpplateaus_data_frame(data.frame(A = 1:4, B = 5:8))
     expect_s3_class(x, "fpplateaus_data_frame")
 
-    expect_error(is_demog_change_component_df(x), NA)
+    expect_error(is_fpplateaus_data_frame(x), NA)
 
     y <- fpplateaus_data_frame(data.frame(A = 1:4, B = 5:8),
                                differences = double(),
