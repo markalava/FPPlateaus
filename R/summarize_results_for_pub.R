@@ -16,26 +16,27 @@
 
 ##' Filter results of plateau analysis
 ##'
-##' Filters 'xxx_all_res_rda' data frame, returning only countries
-##' with at least one plateau period for the indicator and time period
-##' specified. Adds \code{FP_plateau} (logical) column indicating
-##' whether the respective year is in a plateau period.
+##' Filters \code{\link{fpplateaus_data_frame}}s, returning only
+##' countries with at least one FP plateau period \emph{or} fertility
+##' stall for the indicator and time period specified. Adds
+##' \code{FP_plateau} (logical) column indicating whether the
+##' respective year is in a plateau period.
 ##'
-##' @param x Data frame loaded from e.g., 'wra_all_res.rda'.
+##' @param x \code{\link{fpplateaus_data_frame}} loaded from e.g., 'wra_all_res.rda'.
 ##' @param stall_probability Probability threshold for a stall.
 ##' @param indicator FP indicator to keep.
 ##' @param year_lim Limits of time frame to keep. Leave as \code{NULL} (default) to keep all years.
 ##' @param .filter Logical; actually filter out non-stall countries?
-##' @return Filtered version of \code{x}.
+##' @return Filtered version of \code{x}, returned as a \code{data.frame}.
 ##' @author Mark Wheldon
 ##' @export
 get_fp_plateau_countries <- function(x,
-                           stall_probability = NULL,
-                           indicator = NULL,
+                           stall_probability,
+                           indicator,
                            year_lim = NULL,
                            .filter = TRUE) {
 
-    stopifnot(is.data.frame(x))
+    stopifnot(is_fpplateaus_data_frame(x))
     stopifnot(identical(length(stall_probability), 1L))
     stopifnot(identical(length(indicator), 1L))
 
@@ -57,14 +58,13 @@ get_fp_plateau_countries <- function(x,
 
     ## 'FP_plateau' is based on *all* three conditions (level, rate,
     ## probability).
-    stall_prob_wra_df$FP_plateau <-
-        !is.na(stall_prob_wra_df[, stall_prob_group]) & stall_prob_wra_df$Level_condition_met
+    x$FP_plateau <- !is.na(x[, stall_prob_group]) & x$Level_condition_met
 
     stall_isos <- unique(x[x$FP_plateau | x$stall_TFR_any, "iso"])
     if (.filter) x <- x[x$iso %in% stall_isos, ] # includes countries with TFR stalls
 
-    attr(x, "stall_probability_thresholds") <- stall_probability
-    return(x)
+    ## Return as a plain data.frame
+    return(as.data.frame(x))
 }
 
 
@@ -75,7 +75,7 @@ get_fp_plateau_countries <- function(x,
 ##' results, i.e., countries with neither a stall nor a plateau are
 ##' included in the input.
 ##'
-##' @param x Data frame loaded from e.g., 'wra_all_res.rda'.
+##' @param x \code{\link{fpplateaus_data_frame}} loaded from e.g., 'wra_all_res.rda'.
 ##' @param stall_probability,indicator,year_lim See
 ##'     \code{\link{get_fp_plateau_countries}}.
 ##' @param CP_plateau_type_break,MDMM_plateau_type_break Breakpoint in
@@ -88,6 +88,7 @@ make_main_results_df <- function(x,
                                  CP_plateau_type_break = 0.5,
                                  MDMM_plateau_type_break = 0.75) {
 
+    stopifnot(is_fpplateaus_data_frame(x))
     CP_min <- attr(x, "CP_range_condition_min")
     CP_max <- attr(x, "CP_range_condition_max")
     MDMM_min <- attr(x, "MDMM_range_condition_min")
@@ -177,6 +178,7 @@ make_main_results_df <- function(x,
 ##' @author Mark Wheldon
 ##' @export
 make_main_results_table <- function(x, require_level_condition = TRUE) {
+    stopifnot(is.data.frame(x))
     x <- x |>
         dplyr::filter(!is.na(FP_plateau_type) | !is.na(TFR_stall_type))
     if (require_level_condition) {
@@ -211,6 +213,7 @@ make_main_results_table <- function(x, require_level_condition = TRUE) {
 ##' @author Mark Wheldon
 ##' @export
 make_n_stall_years_list <- function(x) {
+    stopifnot(is.data.frame(x))
 
     ## Stalls in countries --------------------
 
@@ -345,13 +348,15 @@ make_n_stall_years_list <- function(x) {
 ##'
 ##' Wrapper function that calls all summaries and returns them in a list.
 ##'
-##' @param x Data frame loaded from e.g., 'wra_all_res.rda'.
+##' @param x \code{\link{fpplateaus_data_frame}} loaded from e.g., 'wra_all_res.rda'.
 ##' @inheritParams get_fp_plateau_countries
 ##' @return List of all summaries.
 ##' @author Mark Wheldon
 ##' @export
 make_all_results_list <- function(x, stall_probability = 0.8, indicator = "Modern",
-                               year_lim = c(1980.5, 2019.5)) {
+                                  year_lim = c(1980.5, 2019.5)) {
+    stopifnot(is_fpplateaus_data_frame(x))
+
     ## Filter
     plateaus_df <- get_fp_plateau_countries(x, stall_probability = stall_probability, indicator = indicator,
                                        year_lim = year_lim)
@@ -435,6 +440,7 @@ make_period_compare_plot <- function(x,
                                      by_FP_plateau_type = TRUE,
                                      CP_abbrev = "MCP",
                                      patterns = FALSE) {
+    stopifnot(is.data.frame(x))
     ## Copied from 'https://github.com/tidyverse/ggplot2/issues/3171'
     ## --->|
     guide_axis_label_trans <- function(label_trans = identity, ...) {

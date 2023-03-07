@@ -12,7 +12,7 @@ make_all_results_list(
 )
 }
 \arguments{
-\item{x}{Data frame loaded from e.g., 'wra_all_res.rda'.}
+\item{x}{\code{\link{fpplateaus_data_frame}} loaded from e.g., 'wra_all_res.rda'.}
 
 \item{stall_probability}{Probability threshold for a stall.}
 

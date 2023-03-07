@@ -14,7 +14,7 @@ make_main_results_df(
 )
 }
 \arguments{
-\item{x}{Data frame loaded from e.g., 'wra_all_res.rda'.}
+\item{x}{\code{\link{fpplateaus_data_frame}} loaded from e.g., 'wra_all_res.rda'.}
 
 \item{stall_probability, indicator, year_lim}{See
 \code{\link{get_fp_plateau_countries}}.}
