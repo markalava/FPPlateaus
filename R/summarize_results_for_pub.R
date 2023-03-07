@@ -14,6 +14,50 @@
 ###
 ################################################################################
 
+##' Simple wrapper to load all results for a given rate condition threshold
+##'
+##' Loads results for a single method (e.g., linear smoothing) and a
+##' single rate condition threshold. Returns a list of data frames,
+##' one for each combination of indicator, marital group and
+##' probability condition threshold.
+##'
+##' @param path_list List which must have names \dQuote{rate_01},
+##'     \dQuote{rate_03}, \dQuote{rate_05}.
+##' @param rate_cond_thold Rate condition threshold to load.
+##' @return A list of data frames.
+##' @author Mark Wheldon
+##' @export
+load_all_plateaus <- function(path_list) {
+    stopifnot(is.list(path_list))
+    stopifnot(identical(names(path_list), c("rate_01", "rate_03", "rate_05")))
+
+    res <- lapply(path_list, function(z) {
+        list(wra = get(load(file.path(z, "rda/wra_all_res_df.rda"))),
+             mwra = get(load(file.path(z, "rda/mwra_all_res_df.rda"))))
+        })
+
+    list(MCP = list(wra = lapply(res, function(z) {
+                    list(prob_08 = make_all_results_list(z$wra, stall_probability = 0.8, indicator = "Modern"),
+                         prob_09 = make_all_results_list(z$wra, stall_probability = 0.9, indicator = "Modern"),
+                         prob_095 = make_all_results_list(z$wra, stall_probability = 0.95, indicator = "Modern"))
+                }),
+                mwra = lapply(res, function(z) {
+                    list(prob_08 = make_all_results_list(z$mwra, stall_probability = 0.8, indicator = "Modern"),
+                         prob_09 = make_all_results_list(z$mwra, stall_probability = 0.9, indicator = "Modern"),
+                         prob_095 = make_all_results_list(z$mwra, stall_probability = 0.95, indicator = "Modern"))
+                })),
+         MetDemModMeth = list(wra = lapply(res, function(z) {
+                    list(prob_08 = make_all_results_list(z$wra, stall_probability = 0.8, indicator = "MetDemModMeth"),
+                         prob_09 = make_all_results_list(z$wra, stall_probability = 0.9, indicator = "MetDemModMeth"),
+                         prob_095 = make_all_results_list(z$wra, stall_probability = 0.95, indicator = "MetDemModMeth"))
+                }),
+                mwra = lapply(res, function(z) {
+                    list(prob_08 = make_all_results_list(z$mwra, stall_probability = 0.8, indicator = "MetDemModMeth"),
+                         prob_09 = make_all_results_list(z$mwra, stall_probability = 0.9, indicator = "MetDemModMeth"),
+                         prob_095 = make_all_results_list(z$mwra, stall_probability = 0.95, indicator = "MetDemModMeth"))
+                })))
+}
+
 ##' Filter results of plateau analysis
 ##'
 ##' Filters \code{\link{fpplateaus_data_frame}}s, returning only
@@ -574,4 +618,133 @@ make_period_compare_plot <- function(x,
                                     aes(y = y_loc, fill = FP_plateau_type, height = bar_height),
                                     position = position_nudge(y = 0.4), alpha = bar_alpha))
     }
+}
+
+##----------------------------------------------------------------------
+
+##' Compare plateaus plot
+##'
+##' Wrapper for \code{\link{stall_plot}} that shows stall
+##' probabilities for different rate condition thresholds.
+##'
+##' @param c_code Numeric country code
+##' @param res_05_df,res_03_df,res_01_df Results to plot and compare;
+##'     results of \code{\link{load_all_plateaus}}. Currently, \emph{must} be
+##'     for rate condition thresholds 0.5, 0.3, and 0.1 percentage
+##'     points.
+##' @param CP_abbrev Label for FP plateaus in the legend.
+##' @param probability_scale Percent or proportion.
+##' @param line_colour Line colour
+##' @param fill_legend_title Title for fill legend.
+##' @param linetype_legend_title Title for linetype legend.
+##' @return A ggplot.
+##' @author Mark Wheldon
+##' @export
+plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP_abbrev = "MCP",
+                                     probability_scale = c("percent", "prop"),
+                                     line_colour = "black",
+                                     fill_legend_title = "Plateau Type",
+                                     linetype_legend_title = "Rate Condition Threshold",
+                                     Level_condition_variant) {
+
+    probability_scale <- match.arg(probability_scale)
+
+    extra_df <- rbind(data.frame(subset(res_03_df, iso == c_code)[, c("year", "stall_prob")],
+                                 rate_condition = "0.3"),
+                      data.frame(subset(res_01_df, iso == c_code)[, c("year", "stall_prob")],
+                                 rate_condition = "0.1"),
+                      data.frame(year = NA, stall_prob = NA, rate_condition = "0.5")
+                      )
+
+    if (identical(probability_scale, "percent"))
+        extra_df$stall_prob <- 100 * extra_df$stall_prob
+
+    stall_plot(subset(res_05_df, iso == c_code),
+               min_stall_length = 1,
+               CP_range_condition_min = 10,
+               CP_range_condition_max = 60,
+               MDMM_range_condition_min = 5,
+               MDMM_range_condition_max = 85,
+               CP_abbrev = paste0(CP_abbrev, " Plateau\n(Rate condition threshold = 0.5, probability = 80%"),
+               xvar = "year",
+               yvar = "stall_prob",
+               stall_probability_threshold = 0.8,
+               Level_condition_variant = Level_condition_variant,
+               probability_scale = probability_scale,
+               add_range_ref_lines = TRUE,
+               add_TFR_stalls = FALSE,
+               legend_title = fill_legend_title,
+               line_colour = line_colour) +
+        geom_line(data = extra_df, aes(x = year, y = stall_prob, linetype = rate_condition),
+                  colour = line_colour) +
+        geom_hline(aes(yintercept = 0.9), col = "blue", linetype = 2) +
+        geom_hline(aes(yintercept = 0.95), col = "blue", linetype = 2) +
+        scale_linetype_manual(values = c(`0.1` = 3, `0.3` = 2, `0.5` = 1), name = linetype_legend_title) +
+        guides(linetype = guide_legend(title.position = "top"))
+}
+
+##----------------------------------------------------------------------
+
+##' Side-by-side time series plots
+##'
+##' Wrapper for \code{\link{stall_plot}} to produce side-by-side time
+##' series plots of FP indicators and plateau probabilities.
+##'
+##' @import ggplot2
+##' @export
+plateau_ts_plot <- function(c_code, res_df,
+                            res_03_df = NULL, res_01_df = NULL,
+                            CP_abbrev = "MCP", CP_not_in_range_abbrev = CP_abbrev,
+                            yvar_fp_plot = c("Modern_median", "stall_prob"),
+                            probability_scale = c("percent", "prop"),
+                            Level_condition_variant,
+                            add_TFR_stalls = TRUE,
+                            legend_title = "Plateau Type",
+                            linetype_legend_title = "Rate Condition Threshold",
+                            stall_prob_line_colour = "black") {
+
+    probability_scale <- match.arg(probability_scale)
+
+    lt_leg_title_old <- linetype_legend_title
+    out_list <- lapply(yvar_fp_plot, function(z) {
+        if (identical(z, "stall_prob")) {
+            lt_leg_title_z <- paste0(linetype_legend_title, "\n('Plateau Probability' panels)")
+            lc_z <- stall_prob_line_colour
+        } else {
+            lt_leg_title_z <- linetype_legend_title
+            lc_z <- formals(stall_plot)$line_colour
+        }
+        if (identical(z, "stall_prob") && !is.null(res_03_df) && !is.null(res_01_df)) {
+            plateau_compare_def_plot(c_code, res_df, res_03_df, res_01_df, CP_abbrev = CP_abbrev,
+                                     probability_scale = probability_scale,
+                                     line_colour = lc_z,
+                                     fill_legend_title = legend_title,
+                                     linetype_legend_title = lt_leg_title_z,
+                                     Level_condition_variant = Level_condition_variant)
+        } else {
+            stall_plot(subset(res_df, iso == c_code),
+                       CP_abbrev = paste0(CP_abbrev, " Plateau\n(Rate condition threshold = 0.5,\nprobability = 80%)"),
+                       CP_not_in_range_abbrev = CP_not_in_range_abbrev,
+                       facet_by_indicator = FALSE,
+                       yvar = z,
+                       min_stall_length = 1,
+                       CP_range_condition_min = 10,
+                       CP_range_condition_max = 60,
+                       MDMM_range_condition_min = 5,
+                       MDMM_range_condition_max = 85,
+                       stall_probability_threshold = 0.8,
+                       Level_condition_variant = Level_condition_variant,
+                       probability_scale = probability_scale,
+                       add_TFR_stalls = add_TFR_stalls,
+                       legend_title = legend_title,
+                       line_colour = lc_z) +
+                theme(plot.title = element_text(size = rel(1)))
+        }
+    })
+
+    if (length(out_list) > 1)
+        out_list[2:length(out_list)] <-
+            lapply(out_list[2:length(out_list)], function(z) z + labs(title = " "))
+
+    return(out_list)
 }
