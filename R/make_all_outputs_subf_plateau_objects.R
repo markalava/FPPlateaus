@@ -484,6 +484,9 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
                             MDMM_in_range = MetDemModMeth_median > MDMM_range_condition_min)
     }
 
+    df <- df |> dplyr::arrange(iso, indicator, year)
+    nrow_check <- nrow(df) #for checking later
+
     Level_condition_met <- rep(NA, nrow(df))
 
     if (identical(Level_condition_variant, "v1 - MCP+SDG")) {
@@ -526,7 +529,9 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
         if (nrow(min_yr_tbl)) {
             idx <- dplyr::left_join(df[, c("iso", "indicator", "year")],
                                     min_yr_tbl[, c("iso", "indicator", "min_year")],
-                                    by = c("iso", "indicator"))
+                                    by = c("iso", "indicator")) |>
+                dplyr::arrange(iso, indicator, year)
+            stopifnot(identical(nrow(idx), nrow_check))
             idx <- idx$indicator %in% c("Modern", "Unmet", "MetDemModMeth") &
                 !is.na(idx$min_year) &
                 idx$year >= idx$min_year
