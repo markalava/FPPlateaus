@@ -6,14 +6,14 @@
 \usage{
 get_fp_plateau_countries(
   x,
-  stall_probability = NULL,
-  indicator = NULL,
+  stall_probability,
+  indicator,
   year_lim = NULL,
   .filter = TRUE
 )
 }
 \arguments{
-\item{x}{Data frame loaded from e.g., 'wra_all_res.rda'.}
+\item{x}{\code{\link{fpplateaus_data_frame}} loaded from e.g., 'wra_all_res.rda'.}
 
 \item{stall_probability}{Probability threshold for a stall.}
 
@@ -24,13 +24,14 @@ get_fp_plateau_countries(
 \item{.filter}{Logical; actually filter out non-stall countries?}
 }
 \value{
-Filtered version of \code{x}.
+Filtered version of \code{x}, returned as a \code{data.frame}.
 }
 \description{
-Filters 'xxx_all_res_rda' data frame, returning only countries
-with at least one plateau period for the indicator and time period
-specified. Adds \code{FP_plateau} (logical) column indicating
-whether the respective year is in a plateau period.
+Filters \code{\link{fpplateaus_data_frame}}s, returning only
+countries with at least one FP plateau period \emph{or} fertility
+stall for the indicator and time period specified. Adds
+\code{FP_plateau} (logical) column indicating whether the
+respective year is in a plateau period.
 }
 \author{
 Mark Wheldon

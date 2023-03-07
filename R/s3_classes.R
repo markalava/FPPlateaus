@@ -96,13 +96,13 @@ validate_fpplateaus_data_frame <- function(x) {
 
 ##' Constructor for class \code{fpplateaus_data_frame}
 ##'
-##' \description{
+##' @description
 ##' Creates objects of class \code{fpplateaus_data_frame}. Objects of
 ##' this class have class attribute
-##' \code{c("demog_change_component_df", "data_frame")}.
+##' \code{c("fpplateaus_data_frame", "data_frame")}.
 ##'
-##' \code{is_demog_change_component_df} is a simple wrapper for
-##' \code{\link{inherits}}.}
+##' \code{is_fpplateaus_data_frame} is a simple wrapper for
+##' \code{\link{inherits}}.
 ##'
 ##' @return An object of class \code{fpplateaus_data_frame}.
 ##' @author Mark Wheldon
@@ -157,7 +157,6 @@ fpplateaus_data_frame <- function(x,
 ##'
 ##' @param x An object to coerce or check.
 ##' @param ... Further arguments passed to specific methods.
-##' @inheritParams fpplateaus_data_frame
 ##' @return A coerced object in the case of the \code{as_...}
 ##'     functions; a logical for the \code{is_...} functions.
 ##' @author Mark Wheldon
@@ -194,6 +193,6 @@ as_fpplateaus_data_frame.fpplateaus_data_frame <- function(x) {
 
 ##' @rdname coerce_fpplateaus_data_frame
 ##' @export
-is_demog_change_component_df <- function(x) {
+is_fpplateaus_data_frame <- function(x) {
     inherits(x, "fpplateaus_data_frame")
 }

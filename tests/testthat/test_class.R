@@ -99,7 +99,7 @@ test_that("Subsetting of 'fpplateus_data_frame's works.", {
 })
 
 
-test_that("Subset-replacing in 'fpplateus_data_frame's works.", {
+test_that("Subset-replacing in `fpplateus_data_frame`s works.", {
     x <- fpplateaus_data_frame(data.frame(A = 1:4, B = 5:8))
     x[, 2] <- 9:12
     expect_s3_class(x, "fpplateaus_data_frame")
@@ -137,3 +137,12 @@ test_that("Method for `base::subset` works.", {
     expect_s3_class(y, NA)
 })
 
+
+test_that("`as.data.frame` method for `fpplateaus_data_frame`s works.", {
+    x <- fpplateaus_data_frame(data.frame(A = 1:4, B = 5:8))
+    x <- as.data.frame(x)
+    expect_false(is_fpplateaus_data_frame(x))
+    for (n in FPPlateaus:::get_fpplateaus_attr_names()) {
+        expect_null(attr(x, n))
+    }
+})

@@ -56,5 +56,7 @@ subset.fpplateaus_data_frame <- function(x, ...) {
 ##' @rdname coerce_fpplateaus_data_frame
 ##' @export
 as.data.frame.fpplateaus_data_frame <- function(x, ...) {
-    return(NextMethod())
+    x <- NextMethod()
+    attributes(x)[get_fpplateaus_attr_names()] <- NULL
+    return(x)
 }

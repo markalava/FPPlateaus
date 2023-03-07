@@ -6,7 +6,7 @@
 \alias{as_fpplateaus_data_frame.default}
 \alias{as_fpplateaus_data_frame.data.frame}
 \alias{as_fpplateaus_data_frame.fpplateaus_data_frame}
-\alias{is_demog_change_component_df}
+\alias{is_fpplateaus_data_frame}
 \alias{as.data.frame.fpplateaus_data_frame}
 \title{Coerce to a \code{fpplateaus_data_frame}}
 \usage{
@@ -18,7 +18,7 @@ as_fpplateaus_data_frame(x, ...)
 
 \method{as_fpplateaus_data_frame}{fpplateaus_data_frame}(x)
 
-is_demog_change_component_df(x)
+is_fpplateaus_data_frame(x)
 
 \method{as.data.frame}{fpplateaus_data_frame}(x, ...)
 }

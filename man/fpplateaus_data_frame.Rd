@@ -23,10 +23,12 @@ fpplateaus_data_frame(
 An object of class \code{fpplateaus_data_frame}.
 }
 \description{
+Creates objects of class \code{fpplateaus_data_frame}. Objects of
+this class have class attribute
+\code{c("fpplateaus_data_frame", "data_frame")}.
 
-}
-\details{
-
+\code{is_fpplateaus_data_frame} is a simple wrapper for
+\code{\link{inherits}}.
 }
 \author{
 Mark Wheldon
