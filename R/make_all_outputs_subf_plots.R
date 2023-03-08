@@ -230,12 +230,8 @@ stall_plot <- function(plot_df, iso_all,
                                              yintercept = MDMM_range_condition_max * 100)
             }
             gp <- gp +
-                geom_hline(data = ref_line_df_1, aes(yintercept = yintercept), linetype = 2, col = "blue")
-
-            if (!identical(Level_condition_variant, "v2 - SDG Only")) {
-                gp <- gp +
+                geom_hline(data = ref_line_df_1, aes(yintercept = yintercept), linetype = 2, col = "blue") +
                     geom_hline(data = ref_line_df_2, aes(yintercept = yintercept), linetype = 2, col = "blue")
-            }
 
         } else if (identical(yvar, "stall_prob")) {
 
