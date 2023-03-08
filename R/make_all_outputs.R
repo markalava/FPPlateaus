@@ -38,8 +38,8 @@ make_all_results <- function(country_isos_to_process = NULL,
                              stall_probability_thresholds = c(0.5, 0.75, 0.8, 0.9, 0.95),
                              CP_range_condition_min = 0.1,
                              CP_range_condition_max = 0.6,
-                             MDMM_range_condition_min = 0.05,
-                             MDMM_range_condition_max = 0.85,
+                             MDMM_range_condition_min = 0.2,
+                             MDMM_range_condition_max = 0.8,
                              year_lim = c(1980, 2022),
                              project_dir = ".",
                              results_dir_name = "results",
@@ -494,7 +494,7 @@ make_all_plots <- function(results_output_dir,
 
             for (prob in stall_probability_thresholds) {
                 pdf(file = file.path(filepaths_outputs$results_output_plots_dir, mar_group,
-                                     paste0("stall_prob_", prob * 100), "country_profiles_all_ssa.pdf"),
+                                     paste0("stall_prob_", prob * 100), "country_profiles_ssa.pdf"),
                     width = 14, height = 10)
                 for(i in ssa_isos) {
                     plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")), iso == i)
