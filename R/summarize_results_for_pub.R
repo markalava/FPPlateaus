@@ -155,11 +155,11 @@ make_main_results_df <- function(x,
                                      FP_plateau & Level_condition_met## CP_in_range
                                      &
                                        indicator %in% c("Unmet", "Modern") &
-                                       Modern_median > CP_plateau_type_break ~ CP_plateau_type_1,
+                                       Modern_median <= CP_plateau_type_break ~ CP_plateau_type_1,
                                      FP_plateau & Level_condition_met## CP_in_range
                                      &
                                        indicator %in% c("Unmet", "Modern") &
-                                       Modern_median <= CP_plateau_type_break ~ CP_plateau_type_2,
+                                       Modern_median > CP_plateau_type_break ~ CP_plateau_type_2,
                                      TRUE ~ as.character(NA)))
         attr(x, "FP_plateau_types") <- c(CP_plateau_type_1, CP_plateau_type_2)
     }
@@ -174,11 +174,11 @@ make_main_results_df <- function(x,
                                      FP_plateau & Level_condition_met## MDMM_in_range
                                      &
                                        indicator %in% c("MetDemModMeth") &
-                                       MetDemModMeth_median > MDMM_plateau_type_break ~ MDMM_plateau_type_1,
+                                       MetDemModMeth_median <= MDMM_plateau_type_break ~ MDMM_plateau_type_1,
                                      FP_plateau & Level_condition_met## MDMM_in_range
                                      &
                                        indicator %in% c("MetDemModMeth") &
-                                       MetDemModMeth_median <= MDMM_plateau_type_break ~ MDMM_plateau_type_2,
+                                       MetDemModMeth_median > MDMM_plateau_type_break ~ MDMM_plateau_type_2,
                                      TRUE ~ as.character(NA)))
         attr(x, "FP_plateau_types") <- c(MDMM_plateau_type_1, MDMM_plateau_type_2)
     }
