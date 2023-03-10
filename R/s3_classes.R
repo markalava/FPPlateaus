@@ -17,7 +17,9 @@ get_fpplateaus_attr_names_numeric_proportions <- function() {
       "MDMM_range_condition_min", "MDMM_range_condition_max")
 }
 
-get_fpplateaus_attr_names_character <- function() { c("marital_group", "denominator_count_filename", "Level_condition_variant") }
+get_fpplateaus_attr_names_character <- function() {
+    c("marital_group", "denominator_count_filename", "Level_condition_variant", "FP_plateau_types")
+}
 
 get_valid_marital_group_values <- function() { c("wra", "mwra", "uwra") }
 
@@ -52,6 +54,7 @@ new_fpplateaus_data_frame <-
              MDMM_range_condition_min = double(),
              MDMM_range_condition_max = double(),
              min_stall_length = double(),
+             FP_plateau_types = character(),
              Level_condition_variant = character(),
              ..., class = character()) {
         if (missing(x)) x <- data.frame()
@@ -69,6 +72,7 @@ new_fpplateaus_data_frame <-
                   MDMM_range_condition_min = MDMM_range_condition_min,
                   MDMM_range_condition_max = MDMM_range_condition_max,
                   min_stall_length = min_stall_length,
+                  FP_plateau_types = FP_plateau_types,
                   Level_condition_variant = Level_condition_variant,
                   ...,
                   class = c(class, "fpplateaus_data_frame", "data.frame"))
@@ -144,6 +148,7 @@ fpplateaus_data_frame <- function(x,
                                   MDMM_range_condition_min = attr(x, "MDMM_range_condition_min"),
                                   MDMM_range_condition_max = attr(x, "MDMM_range_condition_max"),
                                   min_stall_length = attr(x, "min_stall_length"),
+                                  FP_plateau_types = attr(x, "FP_plateau_types"),
                                   Level_condition_variant = attr(x, "Level_condition_variant")) {
 
     stopifnot(is.data.frame(x))
@@ -170,6 +175,7 @@ fpplateaus_data_frame <- function(x,
                                   MDMM_range_condition_min = MDMM_range_condition_min,
                                   MDMM_range_condition_max = MDMM_range_condition_max,
                                   min_stall_length = min_stall_length,
+                                  FP_plateau_types = FP_plateau_types,
                                   Level_condition_variant = Level_condition_variant))
 }
 

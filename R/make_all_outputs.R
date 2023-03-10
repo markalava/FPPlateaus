@@ -238,6 +238,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
         ## Class
         attr(all_res_df, "marital_group") <- marital_group
+        attr(all_res_df, "FP_plateau_types") <- NA_character_
         all_res_df <- as_fpplateaus_data_frame(all_res_df)
 
         ## Internal check

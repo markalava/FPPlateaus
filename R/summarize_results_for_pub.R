@@ -115,7 +115,7 @@ get_fp_plateau_countries <- function(x,
     if (.filter) x <- x[x$iso %in% stall_isos, ] # includes countries with TFR stalls
 
     ## Return as a plain data.frame
-    return(as.data.frame(x))
+    return(as_fpplateaus_data_frame(x))
 }
 
 
@@ -218,7 +218,7 @@ make_main_results_df <- function(x,
         else x[i, "block"] <- x[i - 1, "block"] + 1
     }
 
-    return(x)
+    return(fpplateaus_data_frame(x))
 }
 
 
@@ -681,7 +681,7 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
                CP_abbrev = paste0(CP_abbrev, " Plateau\n(Rate condition threshold = 0.5, probability = 80%"),
                xvar = "year",
                yvar = "stall_prob",
-                       marital_group = marital_group,
+               marital_group = marital_group,
                stall_probability_threshold = 0.8,
                Level_condition_variant = Level_condition_variant,
                probability_scale = probability_scale,
@@ -709,7 +709,8 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
 plateau_ts_plot <- function(c_code, res_df,
                             res_03_df = NULL, res_01_df = NULL,
                             marital_group = c("wra", "mwra"),
-                            CP_abbrev = "MCP", CP_not_in_range_abbrev = CP_abbrev,
+                            CP_abbrev = "MCP",
+                            CP_not_in_range_abbrev = CP_abbrev,
                             yvar_fp_plot = c("Modern_median", "stall_prob"),
                             probability_scale = c("percent", "prop"),
                             Level_condition_variant,

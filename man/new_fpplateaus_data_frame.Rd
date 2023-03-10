@@ -17,6 +17,7 @@ new_fpplateaus_data_frame(
   MDMM_range_condition_min = double(),
   MDMM_range_condition_max = double(),
   min_stall_length = double(),
+  FP_plateau_types = character(),
   Level_condition_variant = character(),
   ...,
   class = character()

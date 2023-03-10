@@ -3,7 +3,7 @@ test_that("`get_fp_plateau_countries()` works.", {
     data(sample_output_wra_all_res_df)
     x <- get_fp_plateau_countries(sample_output_wra_all_res_df, stall_probability = 0.8,
                                              indicator = "Modern")
-    expect_s3_class(x, "data.frame")
+    expect_s3_class(x, "fpplateaus_data_frame")
 
     expect_error(get_fp_plateau_countries(sample_output_wra_all_res_df,
                                           stall_probability = 0.8),
@@ -19,7 +19,8 @@ test_that("`make_main_results_df()` works.", {
     data(sample_output_mwra_all_res_df)
     x <- make_main_results_df(sample_output_mwra_all_res_df,
                               stall_probability = 0.5, indicator = "MetDemModMeth")
-    expect_s3_class(x, "data.frame")
+    expect_s3_class(x, "fpplateaus_data_frame")
+    expect_false(any(is.na(attr(x, "FP_plateau_types"))))
 
     expect_error(make_main_results_df(sample_output_mwra_all_res_df,
                                       stall_probability = 0.5),
