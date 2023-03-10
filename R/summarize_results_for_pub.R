@@ -645,12 +645,14 @@ make_period_compare_plot <- function(x,
 ##' @author Mark Wheldon
 ##' @export
 plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP_abbrev = "MCP",
+                            marital_group = c("wra", "mwra"),
                                      probability_scale = c("percent", "prop"),
                                      line_colour = "black",
                                      fill_legend_title = "Plateau Type",
                                      linetype_legend_title = "Rate Condition Threshold",
                                      Level_condition_variant) {
 
+    marital_group <- match.arg(marital_group)
     probability_scale <- match.arg(probability_scale)
 
     extra_df <- rbind(data.frame(subset(res_03_df, iso == c_code)[, c("year", "stall_prob")],
@@ -672,6 +674,7 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
                CP_abbrev = paste0(CP_abbrev, " Plateau\n(Rate condition threshold = 0.5, probability = 80%"),
                xvar = "year",
                yvar = "stall_prob",
+                       marital_group = marital_group,
                stall_probability_threshold = 0.8,
                Level_condition_variant = Level_condition_variant,
                probability_scale = probability_scale,
@@ -698,6 +701,7 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
 ##' @export
 plateau_ts_plot <- function(c_code, res_df,
                             res_03_df = NULL, res_01_df = NULL,
+                            marital_group = c("wra", "mwra"),
                             CP_abbrev = "MCP", CP_not_in_range_abbrev = CP_abbrev,
                             yvar_fp_plot = c("Modern_median", "stall_prob"),
                             probability_scale = c("percent", "prop"),
@@ -707,6 +711,7 @@ plateau_ts_plot <- function(c_code, res_df,
                             linetype_legend_title = "Rate Condition Threshold",
                             stall_prob_line_colour = "black") {
 
+    marital_group <- match.arg(marital_group)
     probability_scale <- match.arg(probability_scale)
 
     lt_leg_title_old <- linetype_legend_title
@@ -731,6 +736,7 @@ plateau_ts_plot <- function(c_code, res_df,
                        CP_not_in_range_abbrev = CP_not_in_range_abbrev,
                        facet_by_indicator = FALSE,
                        yvar = z,
+                       marital_group = marital_group,
                        min_stall_length = 1,
                        CP_range_condition_min = 10,
                        CP_range_condition_max = 60,

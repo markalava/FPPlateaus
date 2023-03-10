@@ -9,6 +9,7 @@ plateau_ts_plot(
   res_df,
   res_03_df = NULL,
   res_01_df = NULL,
+  marital_group = c("wra", "mwra"),
   CP_abbrev = "MCP",
   CP_not_in_range_abbrev = CP_abbrev,
   yvar_fp_plot = c("Modern_median", "stall_prob"),

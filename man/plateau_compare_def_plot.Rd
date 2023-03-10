@@ -10,6 +10,7 @@ plateau_compare_def_plot(
   res_03_df,
   res_01_df,
   CP_abbrev = "MCP",
+  marital_group = c("wra", "mwra"),
   probability_scale = c("percent", "prop"),
   line_colour = "black",
   fill_legend_title = "Plateau Type",
