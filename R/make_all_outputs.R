@@ -32,6 +32,7 @@ check_change_condition_percent <- function(change_condition_percent) {
 
 ##' @export
 make_all_results <- function(country_isos_to_process = NULL,
+                             marital_group = c("wra", "mwra"),
                              smoothing_method = c("annual_difference", "moving_average", "local_linear"),
                              min_stall_length = NULL,
                              change_condition_percent,
@@ -60,6 +61,7 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## -------* Check Arguments
 
+    marital_group <- match.arg(marital_group)
     smoothing_method <- match.arg(smoothing_method)
     min_stall_length <- check_min_stall_length(min_stall_length, smoothing_method)
     change_condition_percent <- check_change_condition_percent(change_condition_percent)
@@ -235,6 +237,7 @@ make_all_results <- function(country_isos_to_process = NULL,
         all_res_df <- dplyr::left_join(all_res_df, iso_all, by = "iso")
 
         ## Class
+        attr(all_res_df, "marital_group") <- marital_group
         all_res_df <- as_fpplateaus_data_frame(all_res_df)
 
         ## Internal check
@@ -324,7 +327,7 @@ make_all_plots <- function(results_output_dir,
                                                                   "Modern", "Traditional", "Total", "Unmet") &
                                                  iso == i)
                         if (nrow(plot_df)) {
-                            gp <- stall_plot(plot_df, iso_all = iso_all,
+                            gp <- stall_plot(plot_df,
                                              yvar = yvar,
                                              min_stall_length = attr(plot_df, "min_stall_length"),
                                              CP_range_condition_min = attr(plot_df, "CP_range_condition_min"),
@@ -355,8 +358,8 @@ make_all_plots <- function(results_output_dir,
                                         stall_prob = paste0(indicator, "_plateau_probabilities.pdf"),
                                         `annual_change_50%` = paste0(indicator, "_annual_changes.pdf"))
                         indicator_abbrev <- switch(indicator,
-                                                   MetDemModMeth = "Met Dem.\nMod. Meth.",
-                                                   CP_Modern = "CP Modern")
+                                                   MetDemModMeth = "NSMM",
+                                                   CP_Modern = "MCP")
                         indicator_range_abbrev <- switch(indicator,
                                                          MetDemModMeth = "MDMM",
                                                          CP_Modern = "MCP")
@@ -366,7 +369,7 @@ make_all_plots <- function(results_output_dir,
                         pl <- lapply(unique(get(paste0(mar_group, "_all_res_df"))$iso), function(z) {
                             plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")),
                                                      iso == z & indicator == indicator_value)
-                            stall_plot(plot_df, iso_all = iso_all,
+                            stall_plot(plot_df,
                                        CP_abbrev = indicator_abbrev,
                                        CP_not_in_range_abbrev = indicator_range_abbrev,
                                        facet_by_indicator = TRUE,
@@ -420,8 +423,8 @@ make_all_plots <- function(results_output_dir,
                                         stall_prob = paste0(indicator, "_plateau_probabilities_ssa.pdf"),
                                         `annual_change_50%` = paste0(indicator, "_annual_changes_ssa.pdf"))
                         indicator_abbrev <- switch(indicator,
-                                                   MetDemModMeth = "Met Dem.\nMod. Meth.",
-                                                   CP_Modern = "CP Modern")
+                                                   MetDemModMeth = "NSMM",
+                                                   CP_Modern = "MCP")
                         indicator_range_abbrev <- switch(indicator,
                                                          MetDemModMeth = "MDMM",
                                                          CP_Modern = "MCP")
@@ -432,7 +435,7 @@ make_all_plots <- function(results_output_dir,
                         pl <- lapply(ssa_isos, function(z) {
                             plot_df <- dplyr::filter(get(paste0(mar_group, "_all_res_df")),
                                                      iso == z & indicator == indicator_value)
-                            stall_plot(plot_df, iso_all = iso_all,
+                            stall_plot(plot_df,
                                        CP_abbrev = indicator_abbrev,
                                        CP_not_in_range_abbrev = indicator_range_abbrev,
                                        facet_by_indicator = TRUE,

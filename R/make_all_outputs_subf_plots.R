@@ -25,7 +25,7 @@ plot_q_diff <- function(df, iso_all, ylim = TRUE, xlim = c(1980, 2020)) {
 
 ##' @import ggplot2
 ##' @export
-stall_plot <- function(plot_df, iso_all,
+stall_plot <- function(plot_df,
                        min_stall_length = attr(plot_df, "min_stall_length"),
                        xvar = c("year", "Modern_median", "Unmet_median"),
                        yvar = c("annual_change_50%", "stall_prob",
@@ -36,6 +36,7 @@ stall_plot <- function(plot_df, iso_all,
                        mid_year = TRUE,
                        stall_probability_threshold,
                        probability_scale = c("percent", "prop"),
+                       marital_group = attr(plot_df, "marital_group"),
                        CP_range_condition_min = attr(plot_df, "CP_range_condition_min"),
                        CP_range_condition_max = attr(plot_df, "CP_range_condition_max"),
                        MDMM_range_condition_min = attr(plot_df, "MDMM_range_condition_min"),
@@ -49,15 +50,21 @@ stall_plot <- function(plot_df, iso_all,
                        add_range_ref_lines = TRUE,
                        add_TFR_stalls = TRUE,
                        add_FP_stalls = TRUE,
+                       add_source_data = requireNamespace("FPEMglobal", quietly = TRUE) && yvar %in% c("Total_median", "Modern_median", "Traditional_median", "Unmet_median") && marital_group %in% c("mwra", "uwra"),
                        ylim_plot = NULL,
                        xlim_plot = if (identical(xvar, "year")) { c(1980, 2020) } else c(0, 0.6),
                        line_colour = "black",
                        ribbon_fill = line_colour,
                        use_ggpattern = TRUE) {
 
+    if (is.null(plot_df$iso)) stop("'iso' is not a column in 'plot_df'.")
+    if (!identical(length(unique(plot_df$iso)), 1L))
+        stop("'plot_df' must have exactly one country.")
+
     null_arg_msg <- function(x) {
         paste0("Argument '", x, "' is 'NULL'. Check that 'attr(plot_df, ", x, ")' is not 'NULL'.")
     }
+
     if (is.null(min_stall_length)) stop(null_arg_msg("min_stall_length"))
     if (is.null(CP_range_condition_min)) stop(null_arg_msg("CP_range_condition_min"))
     if (is.null(CP_range_condition_max)) stop(null_arg_msg("CP_range_condition_max"))
@@ -65,7 +72,6 @@ stall_plot <- function(plot_df, iso_all,
     if (is.null(MDMM_range_condition_max)) stop(null_arg_msg("MDMM_range_condition_max"))
     if (is.null(Level_condition_variant)) stop(null_arg_msg("Level_condition_variant"))
 
-    ## Set up
     xvar <- match.arg(xvar)
     yvar <- match.arg(yvar)
     stopifnot(identical(length(stall_probability_threshold), 1L) &&
@@ -73,6 +79,38 @@ stall_plot <- function(plot_df, iso_all,
               stall_probability_threshold >= 0 && stall_probability_threshold <= 1)
     probability_scale <- match.arg(probability_scale)
 
+    if (add_source_data) {
+        if (!requireNamespace("FPEMglobal", quietly = TRUE)) {
+            warning("'add_source_data' is 'TRUE' but package 'FPEMglobal' is not installed. Source data will not be plotted.")
+            add_source_data <- FALSE
+        } else if (!yvar %in% c("Total_median", "Modern_median", "Traditional_median", "Unmet_median")) {
+            warning("'add_source_data' is 'TRUE' but can only be plotted if 'yvar' one of 'Total_median', 'Modern_median', 'Traditional_median', 'Unmet_median' (currently is '", yvar, "'). Source data will not be plotted.")
+            add_source_data <- FALSE
+        } else if (!marital_group %in% c("mwra", "uwra")) {
+            warning("'add_source_data' is 'TRUE' but can only be plotted if 'marital_group' one of 'mwra', 'uwra'(currently is '", marital_group, "'). Source data will not be plotted.")
+            add_source_data <- FALSE
+        } else {
+            xvar_source <- switch(xvar,
+                                  year = "year",
+                                  Modern_median = "Contraceptive.use.MODERN",
+                                  Unmet_median = "Unmet")
+            yvar_source <- switch(yvar,
+                                  Total_median = "Contraceptive.use.ANY",
+                                  Modern_median = "Contraceptive.use.MODERN",
+                                  Traditional_median = "Contraceptive.use.TRADITIONAL",
+                                  Unmet_median = "Unmet")
+            in_union <- switch(marital_group, mwra = 1, uwra = 0)
+            source_data_df <-
+                read.csv(file = file.path(system.file("extdata", package = "FPEMglobal"),
+                                          "data_cp_model_all_women_15-49.csv"),
+                         header = TRUE, as.is = TRUE, stringsAsFactors = FALSE, strip.white = TRUE) |>
+                dplyr::filter(ISO.code == plot_df[1, ]$iso & In.union == in_union) |>
+                dplyr::select(c(yvar_source, "Start.year_Year", "End.year_Year", "Data.series.type")) |>
+                dplyr::mutate(year = (Start.year_Year + End.year_Year) / 2)
+        }
+    }
+
+    ## Set up
     stall <- paste0("stall_year_prob_", stall_probability_threshold)
 
     plot_df[, stall] <-
@@ -81,8 +119,6 @@ stall_plot <- function(plot_df, iso_all,
 
     cname <- plot_df[1, "name"]
     rname <- plot_df[1, "region"]
-
-    #plot_df$xvar <- plot_df[, xvar]
 
     if(xvar == "year") {
         if (mid_year) jitt_1 <- jitt_2 <- 0.5
@@ -148,8 +184,6 @@ stall_plot <- function(plot_df, iso_all,
         plyr::ddply(.variables = c("indicator", xvar), .fun = function(z) {
                   data.frame(id = as.character(paste(z[,xvar], z[,"indicator"])), value = 1,
                              x = c(z[,xvar] - rep(jitt_1, 2), z[,xvar] + rep(jitt_2, 2)),
-                             ## y = c(z$`annual_change_2.5%`, z$`annual_change_97.5%`,
-                             ##       z$`annual_change_97.5%`, z$`annual_change_2.5%`),
                              y2 = ylim_plot[c(1,2,2,1)]
                              )
               })
@@ -181,25 +215,6 @@ stall_plot <- function(plot_df, iso_all,
                                  x = median(plot_df[, xvar]), y = mean(plot_df[, yvar]),
                                  y2 = mean(plot_df[, yvar]),
                                  id = 1)
-
-    ## CP_not_in_range_df <- plot_df[!plot_df[,"CP_in_range"] &
-    ##                               plot_df$indicator %in% c("Modern", "Unmet"),] |>
-    ##     plyr::ddply(.variables = c("indicator", xvar), .fun = function(z) {
-    ##               data.frame(id = as.character(paste(z[,xvar], z[,"indicator"])), value = 1,
-    ##                          x = c(z[,xvar] - rep(jitt_1, 2), z[,xvar] + rep(jitt_2, 2)),
-    ##                          y = ylim_plot[c(1,2,2,1)])
-    ##           })
-
-    ## MDMM_not_in_range_df <- plot_df[!plot_df[,"MDMM_in_range"] &
-    ##                               plot_df$indicator == "MetDemModMeth",] |>
-    ##     plyr::ddply(.variables = c("indicator", xvar), .fun = function(z) {
-    ##               data.frame(id = as.character(paste(z[,xvar], z[,"indicator"])), value = 1,
-    ##                          x = c(z[,xvar] - rep(jitt_1, 2), z[,xvar] + rep(jitt_2, 2)),
-    ##                          y = ylim_plot[c(1,2,2,1)])
-    ##           })
-
-    ## indicator_not_in_range_df <-
-    ##     rbind(CP_not_in_range_df, MDMM_not_in_range_df)
 
     indicator_not_in_range_df <- plot_df[!plot_df[,"Level_condition_met"] &
                                          plot_df$indicator %in% c("Modern", "Unmet", "MetDemModMeth"),] |>
@@ -386,9 +401,8 @@ stall_plot <- function(plot_df, iso_all,
         }
     }
 
+    ## FP stalls
     if (add_FP_stalls) {
-
-        ## FP stalls
         if(nrow(stall_prob_exceed_df)) {
             plot_df_fp_stall <- stall_prob_exceed_df
         } else {
@@ -396,14 +410,21 @@ stall_plot <- function(plot_df, iso_all,
         }
         if (use_ggpattern) {
             gp <- gp + ggpattern::geom_polygon_pattern(data =  plot_df_fp_stall,
-                                                aes(x = x, y = y2, group = id, fill = CP_abbrev,
-                                                    pattern = CP_abbrev),
-                                                alpha = fill_alpha)
+                                                       aes(x = x, y = y2, group = id, fill = CP_abbrev,
+                                                           pattern = CP_abbrev),
+                                                       alpha = fill_alpha)
         } else {
             gp <- gp + geom_polygon(data =  plot_df_fp_stall,
-                                                aes(x = x, y = y2, group = id, fill = CP_abbrev),
-                                                alpha = fill_alpha)
+                                    aes(x = x, y = y2, group = id, fill = CP_abbrev),
+                                    alpha = fill_alpha)
         }
+    }
+
+    ## Source data
+    if (add_source_data) {
+        gp <- gp + geom_point(data = source_data_df,
+                              aes(x = .data[[xvar_source]], y = .data[[yvar_source]]))
+
     }
 
     ## Indicator Lines and Ribbons
@@ -473,8 +494,8 @@ country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold, 
 
     plot_df_modern <- dplyr::filter(plot_df, indicator == "Modern")
 
-    plot_df_modern$stall_stat <- "CP Modern"
-    pl1 <- stall_plot(plot_df_modern, iso_all = iso_all, CP_abbrev = "CP Modern", yvar = "Modern_median",
+    plot_df_modern$stall_stat <- "MCP"
+    pl1 <- stall_plot(plot_df_modern, CP_abbrev = "MCP", yvar = "Modern_median",
                       facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
                       CP_not_in_range_abbrev = "FP Indicator",
@@ -483,7 +504,7 @@ country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold, 
         labs(title = "")
 
     plot_df_modern$stall_stat <- "Annual Change"
-    pl2 <- stall_plot(plot_df_modern, iso_all = iso_all, CP_abbrev = "CP Modern", facet_by_indicator = FALSE,
+    pl2 <- stall_plot(plot_df_modern, CP_abbrev = "MCP", facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
                       CP_not_in_range_abbrev = "FP Indicator",
                       use_ggpattern = use_ggpattern) +
@@ -491,7 +512,7 @@ country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold, 
         labs(title = "")
 
     plot_df_modern$stall_stat <- "Plateau Probability"
-    pl3 <- stall_plot(plot_df_modern, iso_all = iso_all, CP_abbrev = "CP Modern", yvar = "stall_prob",
+    pl3 <- stall_plot(plot_df_modern, CP_abbrev = "MCP", yvar = "stall_prob",
                       facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
                       CP_not_in_range_abbrev = "FP Indicator",
@@ -502,8 +523,8 @@ country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold, 
 
     plot_df_mdmm <- dplyr::filter(plot_df, indicator == "MetDemModMeth")
 
-    plot_df_mdmm$stall_stat <- "Met Demand Modern"
-    pl4 <- stall_plot(plot_df_mdmm, iso_all = iso_all, CP_abbrev = "Met Dem.\nMod. Meth.", yvar = "MetDemModMeth_median",
+    plot_df_mdmm$stall_stat <- "NSMM"
+    pl4 <- stall_plot(plot_df_mdmm, CP_abbrev = "Met Dem.\nMod. Meth.", yvar = "MetDemModMeth_median",
                       facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
                       CP_not_in_range_abbrev = "FP Indicator",
@@ -512,7 +533,7 @@ country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold, 
         labs(title = "")
 
     plot_df_mdmm$stall_stat <- "Annual Change"
-    pl5 <- stall_plot(plot_df_mdmm, iso_all = iso_all, CP_abbrev = "Met Dem.\nMod. Meth.", facet_by_indicator = FALSE,
+    pl5 <- stall_plot(plot_df_mdmm, CP_abbrev = "Met Dem.\nMod. Meth.", facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
                       CP_not_in_range_abbrev = "FP Indicator",
                       use_ggpattern = use_ggpattern) +
@@ -520,7 +541,7 @@ country_profile_plot <- function(plot_df, iso_all, stall_probability_threshold, 
         labs(title = "")
 
     plot_df_mdmm$stall_stat <- "Plateau Probability"
-    pl6 <- stall_plot(plot_df_mdmm, iso_all = iso_all, CP_abbrev = "Met Dem.\nMod. Meth.", yvar = "stall_prob",
+    pl6 <- stall_plot(plot_df_mdmm, CP_abbrev = "Met Dem.\nMod. Meth.", yvar = "stall_prob",
                       facet_by_indicator = FALSE,
                       stall_probability_threshold = stall_probability_threshold,
                       CP_not_in_range_abbrev = "FP Indicator",
