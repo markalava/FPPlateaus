@@ -8,7 +8,7 @@
 ###
 ### DESCRIPTION:
 ###
-###     Summarize results of CP Plateaus
+###     Summarize results of CP Plateaus.
 ###
 ###-----------------------------------------------------------------------------
 ###
@@ -143,7 +143,7 @@ make_main_results_df <- function(x,
 
     if (!identical(length(na.omit(unique(x$indicator))), 1L)) stop("'indicator' must have exactly one unique value.")
 
-    ## Obsolete now.
+    ## Obsolete now BUT STILL NEEDED to so leave in.
     ## Adds classification of plateaus according to level of FP indicator.
     if (any(c("Modern","Unmet") %in% x$indicator)) {
         stopifnot(CP_plateau_type_break > CP_min && CP_plateau_type_break < CP_max)
@@ -152,11 +152,11 @@ make_main_results_df <- function(x,
         x <- x |>
             dplyr::mutate(FP_plateau_type =
                           dplyr::case_when(
-                                     FP_plateau & Level_condition_met## CP_in_range
+                                     FP_plateau & Level_condition_met
                                      &
                                        indicator %in% c("Unmet", "Modern") &
                                        Modern_median <= CP_plateau_type_break ~ CP_plateau_type_1,
-                                     FP_plateau & Level_condition_met## CP_in_range
+                                     FP_plateau & Level_condition_met
                                      &
                                        indicator %in% c("Unmet", "Modern") &
                                        Modern_median > CP_plateau_type_break ~ CP_plateau_type_2,
@@ -171,11 +171,11 @@ make_main_results_df <- function(x,
         x <- x |>
             dplyr::mutate(FP_plateau_type =
                           dplyr::case_when(
-                                     FP_plateau & Level_condition_met## MDMM_in_range
+                                     FP_plateau & Level_condition_met
                                      &
                                        indicator %in% c("MetDemModMeth") &
                                        MetDemModMeth_median <= MDMM_plateau_type_break ~ MDMM_plateau_type_1,
-                                     FP_plateau & Level_condition_met## MDMM_in_range
+                                     FP_plateau & Level_condition_met
                                      &
                                        indicator %in% c("MetDemModMeth") &
                                        MetDemModMeth_median > MDMM_plateau_type_break ~ MDMM_plateau_type_2,
@@ -190,13 +190,23 @@ make_main_results_df <- function(x,
                                            stall_TFR_moderate ~ "Moderate evidence",
                                            stall_TFR_weak ~ "Limited evidence",
                                            TRUE ~ as.character(NA)),
-                      ## TFR_stall = stall_TFR | stall_TFR_moderate | stall_TFR_weak
                       ) |>
-        dplyr::mutate(hash = paste(name, FP_plateau_type, TFR_stall_type),
+        dplyr::mutate(hash_1 = paste(name, FP_plateau_type, TFR_stall_type),
+                      hash_2 = paste(name, FP_plateau_type), #Not dependent on TFR stall type.
+                      block_w_TFR = 1,
+                      block_w_FP_type = 1,
                       block = 1)
 
     for (i in 2:nrow(x)) {
-        if (identical(x[i, "hash"], x[i - 1, "hash"]))
+        if (identical(x[i, "hash_1"], x[i - 1, "hash_1"]))
+            x[i, "block_w_TFR"] <- x[i - 1, "block_w_TFR"]
+        else x[i, "block_w_TFR"] <- x[i - 1, "block_w_TFR"] + 1
+
+        if (identical(x[i, "hash_2"], x[i - 1, "hash_2"]))
+            x[i, "block_w_FP_type"] <- x[i - 1, "block_w_FP_type"]
+        else x[i, "block_w_FP_type"] <- x[i - 1, "block_w_FP_type"] + 1
+
+        if (identical(x[i, "name"], x[i - 1, "name"]))
             x[i, "block"] <- x[i - 1, "block"]
         else x[i, "block"] <- x[i - 1, "block"] + 1
     }
@@ -224,14 +234,8 @@ make_main_results_table <- function(x, require_level_condition = TRUE) {
     x <- x |>
         dplyr::filter(!is.na(FP_plateau_type) | !is.na(TFR_stall_type))
     if (require_level_condition) {
-        x <- x |> dplyr::filter(Level_condition_met)##  |>
-            ## dplyr::select(c("name", "year", "FP_plateau_type", "TFR_stall_type", "region",
-            ##                 "block"))
-    } ## else {
-    ##     x <- x |>
-    ##     dplyr::select(c("name", "year", "Level_condition_met", "FP_plateau_type", "TFR_stall_type", "region",
-    ##                     "block"))
-    ## }
+        x <- x |> dplyr::filter(Level_condition_met)
+    }
     x <- x |>
         dplyr::group_by(block) |>
         dplyr::mutate(year_range =
