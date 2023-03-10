@@ -17,20 +17,20 @@ library(FPPlateaus)
 ### * Directories, Filepaths
 
 stopifnot(dir.exists(
-    S0_FPEM_results_dir <- file.path(Sys.getenv("SHAREPOINT_PDU_FPEM_RESULTS"), "2022")))
+    FPEM_results_dir <- file.path(stop("SPECIFY location of FPEM results"))))
 
-S0_mar_dir_name_wra <- "15-49_wra"
-S0_mar_dir_name_mwra <- "15-49_mwra"
-S0_mar_dir_name_uwra <- "15-49_uwra"
+mar_dir_name_wra <- "15-49_wra"
+mar_dir_name_mwra <- "15-49_mwra"
+mar_dir_name_uwra <- "15-49_uwra"
 
 stopifnot(dir.exists(
-    S0_FPEM_results_wra_dir <- file.path(S0_FPEM_results_dir, S0_mar_dir_name_wra)))
+    FPEM_results_wra_dir <- file.path(FPEM_results_dir, mar_dir_name_wra)))
 stopifnot(dir.exists(
-    S0_FPEM_results_mwra_dir <- file.path(S0_FPEM_results_dir, S0_mar_dir_name_mwra)))
+    FPEM_results_mwra_dir <- file.path(FPEM_results_dir, mar_dir_name_mwra)))
 stopifnot(dir.exists(
-    S0_FPEM_results_uwra_dir <- file.path(S0_FPEM_results_dir, S0_mar_dir_name_uwra)))
+    FPEM_results_uwra_dir <- file.path(FPEM_results_dir, mar_dir_name_uwra)))
 
-S0_denominator_count_filename <- "number_of_women_15-49_20220608.csv"
+denominator_count_filename <- "number_of_women_15-49_20220608.csv"
 
 
 ###-----------------------------------------------------------------------------
@@ -48,12 +48,12 @@ for (this_smooth in c("local_linear", "annual_difference", "moving_average")) {
         results_output_dir <-
             make_all_results(smoothing_method = this_smooth,
                              change_condition_percent = this_change_pc,
-                             results_dir_name = "results_v2_new_level_cond", # Once in, forever in.
-                                 FPEM_results_dir = S0_FPEM_results_dir,
-                                 FPEM_results_subdir_names = list(wra = S0_mar_dir_name_wra,
-                                                                  mwra = S0_mar_dir_name_mwra,
-                                                                  uwra = S0_mar_dir_name_uwra),
-                             denominator_count_filename = S0_denominator_count_filename,
+                             results_dir_name = "results_v2_new_level_cond",
+                                 FPEM_results_dir = FPEM_results_dir,
+                                 FPEM_results_subdir_names = list(wra = mar_dir_name_wra,
+                                                                  mwra = mar_dir_name_mwra,
+                                                                  uwra = mar_dir_name_uwra),
+                             denominator_count_filename = denominator_count_filename,
                              Level_condition_variant = "v2 - SDG Only")
         make_all_plots(results_output_dir, use_ggpattern = FALSE)
     }
