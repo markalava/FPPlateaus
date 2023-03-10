@@ -10,7 +10,16 @@ get_fpplateaus_attr_names_numeric <- function() {
       "min_stall_length")
 }
 
-get_fpplateaus_attr_names_character <- function() { c("denominator_count_filename", "Level_condition_variant") }
+get_fpplateaus_attr_names_numeric_proportions <- function() {
+    c("change_condition_as_proportion",
+      "stall_probability_thresholds",
+      "CP_range_condition_min", "CP_range_condition_max",
+      "MDMM_range_condition_min", "MDMM_range_condition_max")
+}
+
+get_fpplateaus_attr_names_character <- function() { c("marital_group", "denominator_count_filename", "Level_condition_variant") }
+
+get_valid_marital_group_values <- function() { c("wra", "mwra", "uwra") }
 
 get_fpplateaus_attr_names <- function() {
     c(get_fpplateaus_attr_names_numeric(), get_fpplateaus_attr_names_character())
@@ -32,6 +41,7 @@ get_fpplateaus_attr_names <- function() {
 ##' @author Mark Wheldon
 new_fpplateaus_data_frame <-
     function(x = data.frame(),
+             marital_group = character(),
              differences = double(),
              change_condition_as_proportion = double(),
              filter_width = double(),
@@ -48,6 +58,7 @@ new_fpplateaus_data_frame <-
         stopifnot(is.data.frame(x))
         stopifnot(is.character(class))
         structure(x,
+                  marital_group = marital_group,
                   differences = differences,
                   change_condition_as_proportion = change_condition_as_proportion,
                   filter_width = filter_width,
@@ -90,6 +101,19 @@ validate_fpplateaus_data_frame <- function(x) {
     for (n in attr_names_character)
         if (!is.character(attr(x, n))) stop("Attribute '", n, "' is not 'character'.")
 
+    ## Numeric Attribute Values
+    for (n in get_fpplateaus_attr_names_numeric_proportions()) {
+        z <- attr(x, n)
+        if (length(z)) {
+            if (isFALSE(all(z >= 0 & z <= 1))) stop("Attribute '", n, "' must be between 0 and 1.")
+        }
+    }
+
+    ## Character Attribute Values
+    z <- attr(x, "marital_group")
+    if (length(z) && isFALSE(z %in% get_valid_marital_group_values()))
+        stop("Attribute 'marital_group' must be one of '", get_valid_marital_group_values(), "'.")
+
     return(x)
 }
 
@@ -109,6 +133,7 @@ validate_fpplateaus_data_frame <- function(x) {
 ##'
 ##' @export
 fpplateaus_data_frame <- function(x,
+                                  marital_group = attr(x, "marital_group"),
                                   differences = attr(x, "differences"),
                                   change_condition_as_proportion = attr(x, "change_condition_as_proportion"),
                                   filter_width = attr(x, "filter_width"),
@@ -134,6 +159,7 @@ fpplateaus_data_frame <- function(x,
 
     validate_fpplateaus_data_frame(
         new_fpplateaus_data_frame(x = as.data.frame(x),
+                                  marital_group = marital_group,
                                   differences = differences,
                                   change_condition_as_proportion = change_condition_as_proportion,
                                   filter_width = filter_width,

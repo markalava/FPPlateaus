@@ -6,6 +6,7 @@
 \usage{
 new_fpplateaus_data_frame(
   x = data.frame(),
+  marital_group = character(),
   differences = double(),
   change_condition_as_proportion = double(),
   filter_width = double(),
