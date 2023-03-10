@@ -139,9 +139,14 @@ stall_plot <- function(plot_df,
         } else if (identical(yvar, "stall_prob") && identical(probability_scale, "percent")) {
             ylim_plot <- c(0, 100)
             yscale_break <- 20
-        } else if (identical(yvar, "Modern_median")) {
-            ylim_plot <- c(0, 100)
+        } else if (yvar %in% c("Total_median", "Modern_median", "Traditional_median",
+                                "Unmet_median", "TotalPlusUnmet_median", "TradPlusUnmet_median",
+                               "Met Demand_median", "MetDemModMeth_median")) {
+            yvar_indicator <- gsub("_median", "", yvar)
             yscale_break <- 20
+            ylim_plot <- c(0, ceiling(max(c(plot_df[[paste0(yvar_indicator, ".97.5%")]]) * 105,
+                                          yscale_break)))
+            if (is.na(ylim_plot[2])) ylim_plot[2] <- 100
         } else {
             ylim_plot <- c(0, 100)
             yscale_break <- 20

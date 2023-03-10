@@ -34,6 +34,13 @@ load_all_plateaus <- function(path_list) {
     res <- lapply(path_list, function(z) {
         list(wra = get(load(file.path(z, "rda/wra_all_res_df.rda"))),
              mwra = get(load(file.path(z, "rda/mwra_all_res_df.rda"))))
+    })
+
+    ## Upgrade objects. TEMP -- can delete when no longer needed
+    res <- lapply(res, function(z) {
+        if (is.null(attr(z$wra, "marital_group"))) attr(z$wra, "marital_group") <- "wra"
+        if (is.null(attr(z$mwra, "marital_group"))) attr(z$mwra, "marital_group") <- "mwra"
+        return(z)
         })
 
     list(MCP = list(wra = lapply(res, function(z) {

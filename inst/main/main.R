@@ -36,6 +36,8 @@ denominator_count_filename <- "number_of_women_15-49_20220608.csv"
 ###-----------------------------------------------------------------------------
 ### * Runs
 
+datestamp <- format(Sys.time(), "%Y%m%d")
+
 for (this_smooth in c("local_linear", "annual_difference", "moving_average")) {
     message("\n\n\n\n======================================================================\n",
             " ", toupper(this_smooth),
@@ -54,6 +56,7 @@ for (this_smooth in c("local_linear", "annual_difference", "moving_average")) {
                                                                   mwra = mar_dir_name_mwra,
                                                                   uwra = mar_dir_name_uwra),
                              denominator_count_filename = denominator_count_filename,
+                             datestamp = datestamp,
                              Level_condition_variant = "v2 - SDG Only")
         make_all_plots(results_output_dir, use_ggpattern = FALSE)
     }
