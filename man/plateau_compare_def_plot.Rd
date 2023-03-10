@@ -10,12 +10,10 @@ plateau_compare_def_plot(
   res_03_df,
   res_01_df,
   CP_abbrev = "MCP",
-  marital_group = c("wra", "mwra"),
   probability_scale = c("percent", "prop"),
   line_colour = "black",
   fill_legend_title = "Plateau Type",
-  linetype_legend_title = "Rate Condition Threshold",
-  Level_condition_variant
+  linetype_legend_title = "Rate Condition Threshold"
 )
 }
 \arguments{
@@ -42,6 +40,9 @@ A ggplot.
 \description{
 Wrapper for \code{\link{stall_plot}} that shows stall
 probabilities for different rate condition thresholds.
+}
+\seealso{
+\code{\link{plateau_ts_plot}}
 }
 \author{
 Mark Wheldon

@@ -239,19 +239,20 @@ stall_plot <- function(plot_df,
 
         } else if (yvar %in% c("MetDemModMeth_median", "Modern_median")) {
             if (identical(yvar, "Modern_median")) {
-                ref_line_df_1 <- expand.grid(indicator = "Modern",
-                                             yintercept = CP_range_condition_min * 100)
-                ref_line_df_2 <- expand.grid(indicator = "Modern",
-                                             yintercept = CP_range_condition_max * 100)
+                ref_line_df_1 <- data.frame(indicator = "Modern",
+                                            yintercept = CP_range_condition_min * 100)
+                ref_line_df_2 <- data.frame(indicator = "Modern",
+                                            yintercept = CP_range_condition_max * 100)
             } else if (identical(yvar, "MetDemModMeth_median")) {
-                ref_line_df_1 <- expand.grid(indicator = "MetDemModMeth",
-                                             yintercept = MDMM_range_condition_min * 100)
-                ref_line_df_2 <- expand.grid(indicator = "MetDemModMeth",
-                                             yintercept = MDMM_range_condition_max * 100)
+                ref_line_df_1 <- data.frame(indicator = "MetDemModMeth",
+                                            yintercept = MDMM_range_condition_min * 100)
+                ref_line_df_2 <- data.frame(indicator = "MetDemModMeth",
+                                            yintercept = MDMM_range_condition_max * 100)
             }
+
             gp <- gp +
                 geom_hline(data = ref_line_df_1, aes(yintercept = yintercept), linetype = 2, col = "blue") +
-                    geom_hline(data = ref_line_df_2, aes(yintercept = yintercept), linetype = 2, col = "blue")
+                geom_hline(data = ref_line_df_2, aes(yintercept = yintercept), linetype = 2, col = "blue")
 
         } else if (identical(yvar, "stall_prob")) {
 

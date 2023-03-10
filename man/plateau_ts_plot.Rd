@@ -9,19 +9,26 @@ plateau_ts_plot(
   res_df,
   res_03_df = NULL,
   res_01_df = NULL,
-  marital_group = c("wra", "mwra"),
   CP_abbrev = "MCP",
   CP_not_in_range_abbrev = CP_abbrev,
   yvar_fp_plot = c("Modern_median", "stall_prob"),
   probability_scale = c("percent", "prop"),
-  Level_condition_variant,
   add_TFR_stalls = TRUE,
   legend_title = "Plateau Type",
   linetype_legend_title = "Rate Condition Threshold",
   stall_prob_line_colour = "black"
 )
 }
+\arguments{
+\item{c_code}{Numeric country code}
+
+\item{CP_abbrev}{Label for FP plateaus in the legend.}
+
+\item{probability_scale}{Percent or proportion.}
+
+\item{linetype_legend_title}{Title for linetype legend.}
+}
 \description{
-Wrapper for \code{\link{stall_plot}} to produce side-by-side time
+Wrapper for \code{\link{stall_plot}} and \code{\link{plateau_compare_def_plot}} to produce side-by-side time
 series plots of FP indicators and plateau probabilities.
 }

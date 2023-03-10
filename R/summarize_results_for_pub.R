@@ -40,8 +40,12 @@ load_all_plateaus <- function(path_list) {
     res <- lapply(res, function(z) {
         if (is.null(attr(z$wra, "marital_group"))) attr(z$wra, "marital_group") <- "wra"
         if (is.null(attr(z$mwra, "marital_group"))) attr(z$mwra, "marital_group") <- "mwra"
-        return(z)
+        z <- lapply(z, function(w) {
+            if (is.null(attr(w, "FP_plateau_types"))) attr(w, "FP_plateau_types") <- character()
+            return(w)
         })
+        return(z)
+    })
 
     list(MCP = list(wra = lapply(res, function(z) {
                     list(prob_08 = make_all_results_list(z$wra, stall_probability = 0.8, indicator = "Modern"),
@@ -650,16 +654,14 @@ make_period_compare_plot <- function(x,
 ##' @param linetype_legend_title Title for linetype legend.
 ##' @return A ggplot.
 ##' @author Mark Wheldon
+##' @seealso \code{\link{plateau_ts_plot}}
 ##' @export
 plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP_abbrev = "MCP",
-                            marital_group = c("wra", "mwra"),
                                      probability_scale = c("percent", "prop"),
                                      line_colour = "black",
                                      fill_legend_title = "Plateau Type",
-                                     linetype_legend_title = "Rate Condition Threshold",
-                                     Level_condition_variant) {
+                                     linetype_legend_title = "Rate Condition Threshold") {
 
-    marital_group <- match.arg(marital_group)
     probability_scale <- match.arg(probability_scale)
 
     extra_df <- rbind(data.frame(subset(res_03_df, iso == c_code)[, c("year", "stall_prob")],
@@ -669,21 +671,20 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
                       data.frame(year = NA, stall_prob = NA, rate_condition = "0.5")
                       )
 
-    if (identical(probability_scale, "percent"))
+    ref_line_90 <- 0.9
+    ref_line_95 <- 0.95
+
+    if (identical(probability_scale, "percent")) {
         extra_df$stall_prob <- 100 * extra_df$stall_prob
+        ref_line_90 <- ref_line_90 * 100
+        ref_line_95 <- ref_line_95 * 100
+    }
 
     stall_plot(subset(res_05_df, iso == c_code),
-               min_stall_length = 1,
-               CP_range_condition_min = 10,
-               CP_range_condition_max = 60,
-               MDMM_range_condition_min = 5,
-               MDMM_range_condition_max = 85,
                CP_abbrev = paste0(CP_abbrev, " Plateau\n(Rate condition threshold = 0.5, probability = 80%"),
                xvar = "year",
                yvar = "stall_prob",
-               marital_group = marital_group,
                stall_probability_threshold = 0.8,
-               Level_condition_variant = Level_condition_variant,
                probability_scale = probability_scale,
                add_range_ref_lines = TRUE,
                add_TFR_stalls = FALSE,
@@ -691,8 +692,8 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
                line_colour = line_colour) +
         geom_line(data = extra_df, aes(x = year, y = stall_prob, linetype = rate_condition),
                   colour = line_colour) +
-        geom_hline(aes(yintercept = 0.9), col = "blue", linetype = 2) +
-        geom_hline(aes(yintercept = 0.95), col = "blue", linetype = 2) +
+        geom_hline(aes(yintercept = ref_line_90), col = "blue", linetype = 2) +
+        geom_hline(aes(yintercept = ref_line_95), col = "blue", linetype = 2) +
         scale_linetype_manual(values = c(`0.1` = 3, `0.3` = 2, `0.5` = 1), name = linetype_legend_title) +
         guides(linetype = guide_legend(title.position = "top"))
 }
@@ -701,25 +702,23 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
 
 ##' Side-by-side time series plots
 ##'
-##' Wrapper for \code{\link{stall_plot}} to produce side-by-side time
+##' Wrapper for \code{\link{stall_plot}} and \code{\link{plateau_compare_def_plot}} to produce side-by-side time
 ##' series plots of FP indicators and plateau probabilities.
 ##'
+##' @inheritParams plateau_compare_def_plot
 ##' @import ggplot2
 ##' @export
 plateau_ts_plot <- function(c_code, res_df,
                             res_03_df = NULL, res_01_df = NULL,
-                            marital_group = c("wra", "mwra"),
                             CP_abbrev = "MCP",
                             CP_not_in_range_abbrev = CP_abbrev,
                             yvar_fp_plot = c("Modern_median", "stall_prob"),
                             probability_scale = c("percent", "prop"),
-                            Level_condition_variant,
                             add_TFR_stalls = TRUE,
                             legend_title = "Plateau Type",
                             linetype_legend_title = "Rate Condition Threshold",
                             stall_prob_line_colour = "black") {
 
-    marital_group <- match.arg(marital_group)
     probability_scale <- match.arg(probability_scale)
 
     lt_leg_title_old <- linetype_legend_title
@@ -736,22 +735,14 @@ plateau_ts_plot <- function(c_code, res_df,
                                      probability_scale = probability_scale,
                                      line_colour = lc_z,
                                      fill_legend_title = legend_title,
-                                     linetype_legend_title = lt_leg_title_z,
-                                     Level_condition_variant = Level_condition_variant)
+                                     linetype_legend_title = lt_leg_title_z)
         } else {
             stall_plot(subset(res_df, iso == c_code),
                        CP_abbrev = paste0(CP_abbrev, " Plateau\n(Rate condition threshold = 0.5,\nprobability = 80%)"),
                        CP_not_in_range_abbrev = CP_not_in_range_abbrev,
                        facet_by_indicator = FALSE,
                        yvar = z,
-                       marital_group = marital_group,
-                       min_stall_length = 1,
-                       CP_range_condition_min = 10,
-                       CP_range_condition_max = 60,
-                       MDMM_range_condition_min = 5,
-                       MDMM_range_condition_max = 85,
                        stall_probability_threshold = 0.8,
-                       Level_condition_variant = Level_condition_variant,
                        probability_scale = probability_scale,
                        add_TFR_stalls = add_TFR_stalls,
                        legend_title = legend_title,
