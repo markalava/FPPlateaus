@@ -202,11 +202,16 @@ make_main_results_df <- function(x,
                                            stall_TFR_weak ~ "Limited evidence",
                                            TRUE ~ as.character(NA)),
                       ) |>
-        dplyr::mutate(hash_1 = paste(name, FP_plateau_type, TFR_stall_type),
-                      hash_2 = paste(name, FP_plateau_type), #Not dependent on TFR stall type.
+        dplyr::mutate(hash_1 = paste(name, FP_plateau_type, TFR_stall_type,
+                                     Level_condition_met),
+                                # Need level condition ^here because
+                                # level condition could change part
+                                # way through intervals of
+                                # plateaus/stalls.
+                      hash_2 = paste(name, FP_plateau_type, Level_condition_met),
+                                # This one is not dependent on TFR stall type.
                       block_w_TFR = 1,
-                      block_w_FP_type = 1,
-                      block = 1)
+                      block_w_FP_type = 1)
 
     for (i in 2:nrow(x)) {
         if (identical(x[i, "hash_1"], x[i - 1, "hash_1"]))
@@ -216,11 +221,9 @@ make_main_results_df <- function(x,
         if (identical(x[i, "hash_2"], x[i - 1, "hash_2"]))
             x[i, "block_w_FP_type"] <- x[i - 1, "block_w_FP_type"]
         else x[i, "block_w_FP_type"] <- x[i - 1, "block_w_FP_type"] + 1
-
-        if (identical(x[i, "name"], x[i - 1, "name"]))
-            x[i, "block"] <- x[i - 1, "block"]
-        else x[i, "block"] <- x[i - 1, "block"] + 1
     }
+
+    x <- x |> dplyr::select(-starts_with("hash"))
 
     return(fpplateaus_data_frame(x))
 }
@@ -248,7 +251,7 @@ make_main_results_table <- function(x, require_level_condition = TRUE) {
         x <- x |> dplyr::filter(Level_condition_met)
     }
     x <- x |>
-        dplyr::group_by(block) |>
+        dplyr::group_by(block_w_TFR) |>
         dplyr::mutate(year_range =
                           dplyr::case_when(identical(min(year), max(year)) ~ as.character(floor(min(year))),
                                            TRUE ~ paste0(floor(min(year)), "-", floor(max(year))))) |>
