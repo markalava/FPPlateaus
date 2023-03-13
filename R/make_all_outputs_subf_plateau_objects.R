@@ -558,9 +558,17 @@ add_stall_indicators_probabilities <- function(df, stall_probability_thresholds)
 ##----------------------------------------------------------------------
 
 ##' @export
-add_stall_lengths <- function(df, min_stall_length,
+add_plateau_lengths <- function(df, min_stall_length,
                               stall_probability_thresholds,
                               cores = 4) {
+
+    ######## NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!
+    ########
+    ######## This function calculates lengths of plateau periods, but
+    ######## does *not* take any account of the level
+    ######## condition. Plateaus start as soon as the plateau
+    ######## probability exceeds the threshold, regardless of the
+    ######## level condition.
 
     ## -------* Checks
 

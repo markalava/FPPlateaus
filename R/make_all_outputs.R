@@ -179,10 +179,18 @@ make_all_results <- function(country_isos_to_process = NULL,
 
         ## Add stall length info
 
-        message("  (2 of 3) .. Calculating stall lengths")
+        message("  (2 of 3) .. Calculating plateau lengths")
+
+    ######## NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!
+    ########
+    ######## `add_plateau_lengths()` calculates lengths of plateau
+    ######## periods, but does *not* take any account of the level
+    ######## condition. Plateaus start as soon as the plateau
+    ######## probability exceeds the threshold, regardless of the
+    ######## level condition.
 
         stall_prob_df <-
-            add_stall_lengths(stall_prob_df,
+            add_plateau_lengths(stall_prob_df,
                               min_stall_length = min_stall_length,
                               stall_probability_thresholds = attr(stall_prob_df,
                                                                   "stall_probability_thresholds"),
