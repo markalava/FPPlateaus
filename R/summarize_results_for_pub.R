@@ -229,19 +229,25 @@ make_main_results_df <- function(x,
 }
 
 
-##' Make summary table of plateaus
+##' Make summary table of FP plateaus and TFR stalls
 ##'
 ##' Creates a data frame that can be printed to summarize plateaus and
 ##' TFR stalls by country and type. Only retains countries with
 ##' \emph{either or both} a stall and plateau. Additionally, if
-##' \code{require_level_condition = TRUE} (defualt), only periods
-##' that satisfy the level condition are retained.
+##' \code{require_level_condition = TRUE} (defualt), only periods that
+##' satisfy the level condition are retained. This could result in no
+##' matches, in which case a data frame with zero rows is returned.
+##'
+##' Compare with
+##' \code{\link{make_main_results_table}} which does not include TFR
+##' stalls in the blocking of time periods.
 ##'
 ##' @param x Output of \code{\link{make_main_results_df}}.
 ##' @param require_level_condition Logical; keep only periods which
 ##'     satisfy the level condition?
-##' @return Data frame.
+##' @return Data frame, possibly with zero rows.
 ##' @author Mark Wheldon
+##' @family Main results tables
 ##' @export
 make_main_results_table <- function(x, require_level_condition = TRUE) {
     stopifnot(is.data.frame(x))
@@ -250,6 +256,8 @@ make_main_results_table <- function(x, require_level_condition = TRUE) {
     if (require_level_condition) {
         x <- x |> dplyr::filter(Level_condition_met)
     }
+
+    if (nrow(x)) {
     x <- x |>
         dplyr::group_by(block_w_TFR) |>
         dplyr::mutate(year_range =
@@ -261,6 +269,52 @@ make_main_results_table <- function(x, require_level_condition = TRUE) {
         return(dplyr::select(x, c("region", "name", "year_range", "TFR_stall_type", "FP_plateau_type")))
     else
         return(dplyr::select(x, c("region", "name", "year_range", "Level_condition_met", "TFR_stall_type", "FP_plateau_type")))
+    } else
+        return(data.frame())
+}
+
+
+##' Make summary table of FP plateaus
+##'
+##' Creates a data frame that can be printed to summarize plateaus by
+##' country and type. Only retains countries with a
+##' plateau. Additionally, if \code{require_level_condition = TRUE}
+##' (defualt), only periods that satisfy the level condition are
+##' retained. This could result in no matches, in which case a data
+##' frame with zero rows is returned.
+##'
+##' Compare with \code{\link{make_main_results_table}} which
+##' includes TFR stalls in the blocking of time periods.
+##'
+##' @param x Output of \code{\link{make_main_results_df}}.
+##' @param require_level_condition Logical; keep only periods which
+##'     satisfy the level condition?
+##' @return Data frame, possibly with zero rows.
+##' @author Mark Wheldon
+##' @family Main results tables
+##' @export
+make_fp_plateau_only_results_table <- function(x, require_level_condition = TRUE) {
+    stopifnot(is.data.frame(x))
+    x <- x |>
+        dplyr::filter(!is.na(FP_plateau_type))
+    if (require_level_condition) {
+        x <- x |> dplyr::filter(Level_condition_met)
+    }
+
+    if (nrow(x)) {
+        x <- x |>
+            dplyr::group_by(block_w_FP_type) |>
+            dplyr::mutate(year_range =
+                              dplyr::case_when(identical(min(year), max(year)) ~ as.character(floor(min(year))),
+                                               TRUE ~ paste0(floor(min(year)), "-", floor(max(year))))) |>
+            dplyr::slice(1) |>
+            dplyr::ungroup()
+        if (require_level_condition)
+            return(dplyr::select(x, c("region", "name", "year_range", "FP_plateau_type")))
+        else
+            return(dplyr::select(x, c("region", "name", "year_range", "Level_condition_met", "FP_plateau_type")))
+    } else
+        return(data.frame())
 }
 
 
@@ -432,6 +486,9 @@ make_all_results_list <- function(x, stall_probability = 0.8, indicator = "Moder
     ## Prepare for output to table
     main_results_tbl <- make_main_results_table(main_results_df, require_level_condition = FALSE)
 
+    main_fp_plateau_only_results_table <-
+        make_fp_plateau_only_results_table(main_results_df, require_level_condition = FALSE)
+
     ## Stall years list
     n_stall_years_list <- make_n_stall_years_list(main_results_df)
 
@@ -440,6 +497,7 @@ make_all_results_list <- function(x, stall_probability = 0.8, indicator = "Moder
                 plateaus_ssa_df = plateaus_ssa_df,
                 main_results_df = main_results_df,
                 main_results_tbl = main_results_tbl,
+                main_fp_plateau_only_results_table = main_fp_plateau_only_results_table,
                 n_stall_years_list = n_stall_years_list))
 }
 
@@ -709,6 +767,7 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
 ##' series plots of FP indicators and plateau probabilities.
 ##'
 ##' @inheritParams plateau_compare_def_plot
+##' @return A list of ggplot objects.
 ##' @import ggplot2
 ##' @export
 plateau_ts_plot <- function(c_code, res_df,
@@ -741,7 +800,7 @@ plateau_ts_plot <- function(c_code, res_df,
                                      linetype_legend_title = lt_leg_title_z)
         } else {
             stall_plot(subset(res_df, iso == c_code),
-                       CP_abbrev = paste0(CP_abbrev, " Plateau\n(Rate condition threshold = 0.5,\nprobability = 80%)"),
+                       CP_abbrev = paste0(CP_abbrev, " Plateau\n(Rate cond. threshold = 0.5,\nprobability = 80%)"),
                        CP_not_in_range_abbrev = CP_not_in_range_abbrev,
                        facet_by_indicator = FALSE,
                        yvar = z,
@@ -759,4 +818,66 @@ plateau_ts_plot <- function(c_code, res_df,
             lapply(out_list[2:length(out_list)], function(z) z + labs(title = " "))
 
     return(out_list)
+}
+
+##----------------------------------------------------------------------
+
+##' Side-by-side time series plots
+##'
+##' Wrapper for \code{\link{plateau_ts_plot}} to produce plots for
+##' multiple countries in a single (multi-page) plot. This should be
+##' wrapped by \code{\link{pdf}} ... \code{\link{dev.off()}} to have
+##' output saved to a PDF file.
+##'
+##' @inheritParams plateau_ts_plot.
+##' @param indicator_col_title Text string; title for the indicator column of plots.
+##' @param plateau_prob_col_title Text string; title for the plateau probability column of plots.
+##' @param ... Passed to \code{\link{plateau_ts_plot}}.
+##' @return Called for side effect of printing a ggplot.
+##' @import ggplot2
+##' @export
+plateau_ts_plot_multiple <- function(res_df,
+                                     indicator_col_title = "Modern Contraceptive Prevalence",
+                                     plateau_prob_col_title = "Plateau Probability",
+                                     ...) {
+
+    all_isos <- na.omit(unique(res_df$iso))
+
+    plot_mcp_stall_li <-
+        purrr::flatten(lapply(all_isos,
+                              function(z) plateau_ts_plot(z, res_df = res_df, ...)))
+
+    n_plots <- length(plot_mcp_stall_li)
+    n_rows_per_page <- 4
+    n_plots_per_page <- n_rows_per_page * 2
+    n_pages <- ceiling(n_plots / n_plots_per_page)
+    n_plots_last_page <- n_plots - (n_pages - 1) * n_plots_per_page
+    page_assignments <- gl(n_pages, n_plots_per_page, length = n_plots)
+
+    for (pg in 1:(n_pages - 1)) {
+        gridExtra::grid.arrange(grobs = c(list(grid::textGrob(indicator_col_title),
+                                               grid::textGrob(plateau_prob_col_title)),
+                                          lapply(plot_mcp_stall_li[page_assignments == pg],
+                                                 function(z) z + theme(legend.position="none")),
+                                          list(cowplot::get_legend(plot_mcp_stall_li[[1]]))),
+                                layout_matrix = rbind(c(1, 2),
+                                                      matrix(c(rep(seq(from = 3, to = n_plots_per_page + 2,
+                                                                       by = 2), each = 6),
+                                                               rep(seq(from = 4, to = n_plots_per_page + 3,
+                                                                       by = 2), each = 6)),
+                                                             ncol = 2),
+                                                      matrix(n_plots_per_page + 3, nrow = 2, ncol = 2)))
+    }
+    gridExtra::grid.arrange(grobs = c(list(grid::textGrob(indicator_col_title),
+                                           grid::textGrob(plateau_prob_col_title)),
+                                      lapply(plot_mcp_stall_li[page_assignments == n_pages],
+                                             function(z) z + theme(legend.position="none")),
+                                      list(cowplot::get_legend(plot_mcp_stall_li[[1]]))),
+                            layout_matrix = rbind(c(1, 2),
+                                                  matrix(c(rep(seq(from = 3, to = n_plots_last_page + 2,
+                                                                   by = 2), each = 6),
+                                                           rep(seq(from = 4, to = n_plots_last_page + 3,
+                                                                   by = 2), each = 6)),
+                                                         ncol = 2),
+                                                  matrix(n_plots_per_page + 3, nrow = 2, ncol = 2)))
 }

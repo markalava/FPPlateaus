@@ -2,7 +2,7 @@
 % Please edit documentation in R/summarize_results_for_pub.R
 \name{make_main_results_table}
 \alias{make_main_results_table}
-\title{Make summary table of plateaus}
+\title{Make summary table of FP plateaus and TFR stalls}
 \usage{
 make_main_results_table(x, require_level_condition = TRUE)
 }
@@ -19,9 +19,16 @@ Data frame.
 Creates a data frame that can be printed to summarize plateaus and
 TFR stalls by country and type. Only retains countries with
 \emph{either or both} a stall and plateau. Additionally, if
-\code{require_level_condition = TRUE} (defualt), only periods
-that satisfy the level condition are retained.
+\code{require_level_condition = TRUE} (defualt), only periods that
+satisfy the level condition are retained. Compare with
+\code{\link{make_main_results_table}} which does not include TFR
+stalls in the blocking of time periods.
+}
+\seealso{
+Other Main results tables: 
+\code{\link{make_fp_plateau_only_results_table}()}
 }
 \author{
 Mark Wheldon
 }
+\concept{Main results tables}
