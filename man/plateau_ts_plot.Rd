@@ -28,6 +28,9 @@ plateau_ts_plot(
 
 \item{linetype_legend_title}{Title for linetype legend.}
 }
+\value{
+A list of ggplot objects.
+}
 \description{
 Wrapper for \code{\link{stall_plot}} and \code{\link{plateau_compare_def_plot}} to produce side-by-side time
 series plots of FP indicators and plateau probabilities.

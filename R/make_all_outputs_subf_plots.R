@@ -50,7 +50,7 @@ stall_plot <- function(plot_df,
                        add_range_ref_lines = TRUE,
                        add_TFR_stalls = TRUE,
                        add_FP_stalls = TRUE,
-                       add_source_data = requireNamespace("FPEMglobal", quietly = TRUE) && yvar %in% c("Total_median", "Modern_median", "Traditional_median", "Unmet_median") && marital_group %in% c("mwra", "uwra"),
+                       add_source_data = requireNamespace("FPEMglobal", quietly = TRUE) && yvar %in% c("Total_median", "Modern_median", "Traditional_median", "Unmet_median", "MetDemModMeth_median") && marital_group %in% c("mwra", "uwra"),
                        ylim_plot = NULL,
                        xlim_plot = if (identical(xvar, "year")) { c(1980, 2020) } else c(0, 0.6),
                        line_colour = "black",
@@ -83,8 +83,9 @@ stall_plot <- function(plot_df,
         if (!requireNamespace("FPEMglobal", quietly = TRUE)) {
             warning("'add_source_data' is 'TRUE' but package 'FPEMglobal' is not installed. Source data will not be plotted.")
             add_source_data <- FALSE
-        } else if (!yvar %in% c("Total_median", "Modern_median", "Traditional_median", "Unmet_median")) {
-            warning("'add_source_data' is 'TRUE' but can only be plotted if 'yvar' one of 'Total_median', 'Modern_median', 'Traditional_median', 'Unmet_median' (currently is '", yvar, "'). Source data will not be plotted.")
+        } else if (!yvar %in% c("Total_median", "Modern_median", "Traditional_median", "Unmet_median",
+                                "MetDemModMeth_median")) {
+            warning("'add_source_data' is 'TRUE' but can only be plotted if 'yvar' one of 'Total_median', 'Modern_median', 'Traditional_median', 'Unmet_median', 'MetDemModMeth_median', (currently is '", yvar, "'). Source data will not be plotted.")
             add_source_data <- FALSE
         } else if (!marital_group %in% c("mwra", "uwra")) {
             warning("'add_source_data' is 'TRUE' but can only be plotted if 'marital_group' one of 'mwra', 'uwra'(currently is '", marital_group, "'). Source data will not be plotted.")
@@ -98,15 +99,22 @@ stall_plot <- function(plot_df,
                                   Total_median = "Contraceptive.use.ANY",
                                   Modern_median = "Contraceptive.use.MODERN",
                                   Traditional_median = "Contraceptive.use.TRADITIONAL",
-                                  Unmet_median = "Unmet")
+                                  Unmet_median = "Unmet",
+                                  MetDemModMeth_median = "MetDemModMeth")
             in_union <- switch(marital_group, mwra = 1, uwra = 0)
+            ratio_multiplier <- switch(probability_scale,
+                                       percent = 100, prop = 1)
+
             source_data_df <-
                 read.csv(file = file.path(system.file("extdata", package = "FPEMglobal"),
                                           "data_cp_model_all_women_15-49.csv"),
                          header = TRUE, as.is = TRUE, stringsAsFactors = FALSE, strip.white = TRUE) |>
                 dplyr::filter(ISO.code == plot_df[1, ]$iso & In.union == in_union) |>
-                dplyr::select(c(yvar_source, "Start.year_Year", "End.year_Year", "Data.series.type")) |>
-                dplyr::mutate(year = (Start.year_Year + End.year_Year) / 2)
+                dplyr::mutate(year = (Start.year_Year + End.year_Year) / 2,
+                              MetDemModMeth = ratio_multiplier * Contraceptive.use.MODERN / (Contraceptive.use.MODERN +
+                                                                          Contraceptive.use.TRADITIONAL +
+                                                                          Unmet)) |>
+                dplyr::select(c(yvar_source, "year", "Data.series.type"))
         }
     }
 
@@ -452,7 +460,7 @@ stall_plot <- function(plot_df,
             paste0(yvar_indicator, ".97.5%") %in% colnames(plot_df)) {
             gp <- gp +
                 geom_ribbon(aes(ymin = .data[[paste0(yvar_indicator, ".2.5%")]],
-                                       ymax = .data[[paste0(yvar_indicator, ".97.5%")]]),
+                                ymax = .data[[paste0(yvar_indicator, ".97.5%")]]),
                             alpha = 0.15, fill = ribbon_fill)
         }
     }

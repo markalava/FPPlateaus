@@ -13,14 +13,18 @@ make_main_results_table(x, require_level_condition = TRUE)
 satisfy the level condition?}
 }
 \value{
-Data frame.
+Data frame, possibly with zero rows.
 }
 \description{
 Creates a data frame that can be printed to summarize plateaus and
 TFR stalls by country and type. Only retains countries with
 \emph{either or both} a stall and plateau. Additionally, if
 \code{require_level_condition = TRUE} (defualt), only periods that
-satisfy the level condition are retained. Compare with
+satisfy the level condition are retained. This could result in no
+matches, in which case a data frame with zero rows is returned.
+}
+\details{
+Compare with
 \code{\link{make_main_results_table}} which does not include TFR
 stalls in the blocking of time periods.
 }
