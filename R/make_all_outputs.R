@@ -32,7 +32,6 @@ check_change_condition_percent <- function(change_condition_percent) {
 
 ##' @export
 make_all_results <- function(country_isos_to_process = NULL,
-                             marital_group = c("wra", "mwra"),
                              smoothing_method = c("annual_difference", "moving_average", "local_linear"),
                              min_stall_length = NULL,
                              change_condition_percent,
@@ -61,7 +60,6 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ## -------* Check Arguments
 
-    marital_group <- match.arg(marital_group)
     smoothing_method <- match.arg(smoothing_method)
     min_stall_length <- check_min_stall_length(min_stall_length, smoothing_method)
     change_condition_percent <- check_change_condition_percent(change_condition_percent)
@@ -243,7 +241,7 @@ make_all_results <- function(country_isos_to_process = NULL,
         all_res_df <- dplyr::left_join(all_res_df, iso_all, by = "iso")
 
         ## Class
-        attr(all_res_df, "marital_group") <- marital_group
+        attr(all_res_df, "marital_group") <- this_mar
         attr(all_res_df, "FP_plateau_types") <- NA_character_
         all_res_df <- as_fpplateaus_data_frame(all_res_df)
 

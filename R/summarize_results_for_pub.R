@@ -38,8 +38,8 @@ load_all_plateaus <- function(path_list) {
 
     ## Upgrade objects. TEMP -- can delete when no longer needed
     res <- lapply(res, function(z) {
-        if (is.null(attr(z$wra, "marital_group"))) attr(z$wra, "marital_group") <- "wra"
-        if (is.null(attr(z$mwra, "marital_group"))) attr(z$mwra, "marital_group") <- "mwra"
+        attr(z$wra, "marital_group") <- "wra"
+        attr(z$mwra, "marital_group") <- "mwra"
         z <- lapply(z, function(w) {
             if (is.null(attr(w, "FP_plateau_types"))) attr(w, "FP_plateau_types") <- character()
             return(w)
