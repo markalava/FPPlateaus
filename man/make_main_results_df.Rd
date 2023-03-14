@@ -14,13 +14,15 @@ make_main_results_df(
 )
 }
 \arguments{
-\item{x}{\code{\link{fpplateaus_data_frame}} loaded from e.g., 'wra_all_res.rda'.}
+\item{x}{\code{\link{fpplateaus_data_frame}} loaded from e.g.,
+'wra_all_res.rda'.}
 
 \item{stall_probability}{Probability threshold for a stall.}
 
 \item{indicator}{FP indicator to keep.}
 
-\item{year_lim}{Limits of time frame to keep. Leave as \code{NULL} (default) to keep all years.}
+\item{year_lim}{Limits of time frame to keep. Leave as \code{NULL}
+(default) to keep all years.}
 
 \item{CP_plateau_type_break, MDMM_plateau_type_break}{\emph{Obsolete: leave at default.} Breakpoint in
 indicator range to use to generate two plateau types.}
@@ -29,11 +31,17 @@ indicator range to use to generate two plateau types.}
 Data frame with extra attribute \code{"FP_plateau_types"}.
 }
 \description{
-Construct new columns counting number of stall years,
-etc. \emph{Note:} This function can work on the un-filtered
+Constructs new columns counting number of stall years,
+etc. \code{\link{get_fp_plateau_countries}(..., .filter = FALSE)}
+is immediately called on \code{x}; see the documentation of that
+function for additional details.
+}
+\section{Note}{
+ This function can work on the un-filtered
 results, i.e., countries with neither a stall nor a plateau are
 included in the input.
 }
+
 \author{
 Mark Wheldon
 }

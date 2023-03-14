@@ -13,7 +13,8 @@ plateau_compare_def_plot(
   probability_scale = c("percent", "prop"),
   line_colour = "black",
   fill_legend_title = "Plateau Type",
-  linetype_legend_title = "Rate Condition Threshold"
+  linetype_legend_title = "Rate Condition Threshold",
+  ...
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ points.}
 \item{fill_legend_title}{Title for fill legend.}
 
 \item{linetype_legend_title}{Title for linetype legend.}
+
+\item{...}{Passed to \code{stall_plot}.}
 }
 \value{
 A ggplot.

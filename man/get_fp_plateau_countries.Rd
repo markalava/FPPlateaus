@@ -13,25 +13,34 @@ get_fp_plateau_countries(
 )
 }
 \arguments{
-\item{x}{\code{\link{fpplateaus_data_frame}} loaded from e.g., 'wra_all_res.rda'.}
+\item{x}{\code{\link{fpplateaus_data_frame}} loaded from e.g.,
+'wra_all_res.rda'.}
 
 \item{stall_probability}{Probability threshold for a stall.}
 
 \item{indicator}{FP indicator to keep.}
 
-\item{year_lim}{Limits of time frame to keep. Leave as \code{NULL} (default) to keep all years.}
+\item{year_lim}{Limits of time frame to keep. Leave as \code{NULL}
+(default) to keep all years.}
 
 \item{.filter}{Logical; actually filter out non-stall countries?}
 }
 \value{
-Filtered version of \code{x}, returned as a \code{data.frame}.
+Filtered version of \code{x}, returned as a
+\code{data.frame}.
 }
 \description{
-Filters \code{\link{fpplateaus_data_frame}}s, returning only
+\itemize{
+\item Filters \code{\link{fpplateaus_data_frame}}s, returning only
 countries with at least one FP plateau period \emph{or} fertility
-stall for the indicator and time period specified. Adds
-\code{FP_plateau} (logical) column indicating whether the
-respective year is in a plateau period.
+stall for the indicator and time period specified.
+\item Adds \code{FP_plateau} (logical) column indicating whether the
+respective year is in a plateau period under the
+\code{stall_probability}.
+\item Removes columns that start with
+\dQuote{\code{stall_year_prob_}\var{p}} where \var{p} is not
+\code{stall_prob}.
+}
 }
 \author{
 Mark Wheldon

@@ -69,20 +69,29 @@ load_all_plateaus <- function(path_list) {
                 })))
 }
 
+
+
 ##' Filter results of plateau analysis
 ##'
-##' Filters \code{\link{fpplateaus_data_frame}}s, returning only
+##' - Filters \code{\link{fpplateaus_data_frame}}s, returning only
 ##' countries with at least one FP plateau period \emph{or} fertility
-##' stall for the indicator and time period specified. Adds
-##' \code{FP_plateau} (logical) column indicating whether the
-##' respective year is in a plateau period.
+##' stall for the indicator and time period specified.
+##' - Adds \code{FP_plateau} (logical) column indicating whether the
+##' respective year is in a plateau period under the
+##' \code{stall_probability}.
+##' - Removes columns that start with
+##' \dQuote{\code{stall_year_prob_}\var{p}} where \var{p} is not
+##' \code{stall_prob}.
 ##'
-##' @param x \code{\link{fpplateaus_data_frame}} loaded from e.g., 'wra_all_res.rda'.
+##' @param x \code{\link{fpplateaus_data_frame}} loaded from e.g.,
+##'     'wra_all_res.rda'.
 ##' @param stall_probability Probability threshold for a stall.
 ##' @param indicator FP indicator to keep.
-##' @param year_lim Limits of time frame to keep. Leave as \code{NULL} (default) to keep all years.
+##' @param year_lim Limits of time frame to keep. Leave as \code{NULL}
+##'     (default) to keep all years.
 ##' @param .filter Logical; actually filter out non-stall countries?
-##' @return Filtered version of \code{x}, returned as a \code{data.frame}.
+##' @return Filtered version of \code{x}, returned as a
+##'     \code{data.frame}.
 ##' @author Mark Wheldon
 ##' @export
 get_fp_plateau_countries <- function(x,
@@ -90,6 +99,14 @@ get_fp_plateau_countries <- function(x,
                            indicator,
                            year_lim = NULL,
                            .filter = TRUE) {
+
+    ## Helper to keep only 'stall_year_prob_...' cols that match the selected stall probability.
+    remove_extra_stall_year_prob_cols <- function(x, stall_probability) {
+        all_cols <- grep("stall_year_prob", colnames(x), value = TRUE)
+        keep_cols <- grep(stall_probability, all_cols, value = TRUE)
+        drop_cols <- all_cols[!all_cols %in% keep_cols]
+        return(x[, !colnames(x) %in% drop_cols])
+    }
 
     stopifnot(is_fpplateaus_data_frame(x))
     stopifnot(identical(length(stall_probability), 1L))
@@ -99,6 +116,7 @@ get_fp_plateau_countries <- function(x,
     stall_prob_group <- paste0("stall_year_prob_", stall_probability, "_group_period")
     if (!stall_prob_group %in% colnames(x))
         stop("Column '", stall_prob_group, "' not found in 'x'. Check argument 'stall_probability'.")
+    x <- remove_extra_stall_year_prob_cols(x, stall_probability)
 
     stopifnot(indicator %in% unique(x$indicator))
     x <- x[x$indicator == indicator, ]
@@ -125,8 +143,12 @@ get_fp_plateau_countries <- function(x,
 
 ##' Make data frame of main results for plateau analysis
 ##'
-##' Construct new columns counting number of stall years,
-##' etc. \emph{Note:} This function can work on the un-filtered
+##' Constructs new columns counting number of stall years,
+##' etc. \code{\link{get_fp_plateau_countries}(..., .filter = FALSE)}
+##' is immediately called on \code{x}; see the documentation of that
+##' function for additional details.
+##'
+##' @section Note: This function can work on the un-filtered
 ##' results, i.e., countries with neither a stall nor a plateau are
 ##' included in the input.
 ##'
@@ -460,7 +482,8 @@ make_n_stall_years_list <- function(x) {
 
 ##' Make list of all results objects
 ##'
-##' Wrapper function that calls all summaries and returns them in a list.
+##' Wrapper function that calls all summaries and returns them in a
+##' list.
 ##'
 ##' @param x \code{\link{fpplateaus_data_frame}} loaded from e.g., 'wra_all_res.rda'.
 ##' @inheritParams get_fp_plateau_countries
@@ -713,6 +736,7 @@ make_period_compare_plot <- function(x,
 ##' @param line_colour Line colour
 ##' @param fill_legend_title Title for fill legend.
 ##' @param linetype_legend_title Title for linetype legend.
+##' @param ... Passed to \code{stall_plot}.
 ##' @return A ggplot.
 ##' @author Mark Wheldon
 ##' @seealso \code{\link{plateau_ts_plot}}
@@ -721,7 +745,7 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
                                      probability_scale = c("percent", "prop"),
                                      line_colour = "black",
                                      fill_legend_title = "Plateau Type",
-                                     linetype_legend_title = "Rate Condition Threshold") {
+                                     linetype_legend_title = "Rate Condition Threshold", ...) {
 
     probability_scale <- match.arg(probability_scale)
 
@@ -750,7 +774,7 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
                add_range_ref_lines = TRUE,
                add_TFR_stalls = FALSE,
                legend_title = fill_legend_title,
-               line_colour = line_colour) +
+               line_colour = line_colour, ...) +
         geom_line(data = extra_df, aes(x = year, y = stall_prob, linetype = rate_condition),
                   colour = line_colour) +
         geom_hline(aes(yintercept = ref_line_90), col = "blue", linetype = 2) +
@@ -767,6 +791,7 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
 ##' series plots of FP indicators and plateau probabilities.
 ##'
 ##' @inheritParams plateau_compare_def_plot
+##' @param ... Passed to \code{stall_plot}.
 ##' @return A list of ggplot objects.
 ##' @import ggplot2
 ##' @export
@@ -779,7 +804,7 @@ plateau_ts_plot <- function(c_code, res_df,
                             add_TFR_stalls = TRUE,
                             legend_title = "Plateau Type",
                             linetype_legend_title = "Rate Condition Threshold",
-                            stall_prob_line_colour = "black") {
+                            stall_prob_line_colour = "black", ...) {
 
     probability_scale <- match.arg(probability_scale)
 
@@ -797,7 +822,8 @@ plateau_ts_plot <- function(c_code, res_df,
                                      probability_scale = probability_scale,
                                      line_colour = lc_z,
                                      fill_legend_title = legend_title,
-                                     linetype_legend_title = lt_leg_title_z)
+                                     linetype_legend_title = lt_leg_title_z,
+                                     ...)
         } else {
             stall_plot(subset(res_df, iso == c_code),
                        CP_abbrev = paste0(CP_abbrev, " Plateau\n(Rate cond. threshold = 0.5,\nprobability = 80%)"),
@@ -808,7 +834,8 @@ plateau_ts_plot <- function(c_code, res_df,
                        probability_scale = probability_scale,
                        add_TFR_stalls = add_TFR_stalls,
                        legend_title = legend_title,
-                       line_colour = lc_z) +
+                       line_colour = lc_z,
+                       ...) +
                 theme(plot.title = element_text(size = rel(1)))
         }
     })

@@ -18,13 +18,15 @@ make_all_results_list(
 
 \item{indicator}{FP indicator to keep.}
 
-\item{year_lim}{Limits of time frame to keep. Leave as \code{NULL} (default) to keep all years.}
+\item{year_lim}{Limits of time frame to keep. Leave as \code{NULL}
+(default) to keep all years.}
 }
 \value{
 List of all summaries.
 }
 \description{
-Wrapper function that calls all summaries and returns them in a list.
+Wrapper function that calls all summaries and returns them in a
+list.
 }
 \author{
 Mark Wheldon

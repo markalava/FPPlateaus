@@ -16,7 +16,8 @@ plateau_ts_plot(
   add_TFR_stalls = TRUE,
   legend_title = "Plateau Type",
   linetype_legend_title = "Rate Condition Threshold",
-  stall_prob_line_colour = "black"
+  stall_prob_line_colour = "black",
+  ...
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ plateau_ts_plot(
 \item{probability_scale}{Percent or proportion.}
 
 \item{linetype_legend_title}{Title for linetype legend.}
+
+\item{...}{Passed to \code{stall_plot}.}
 }
 \value{
 A list of ggplot objects.
