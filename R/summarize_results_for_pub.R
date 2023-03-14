@@ -829,7 +829,7 @@ plateau_ts_plot <- function(c_code, res_df,
 ##' wrapped by \code{\link{pdf}} ... \code{\link{dev.off()}} to have
 ##' output saved to a PDF file.
 ##'
-##' @inheritParams plateau_ts_plot.
+##' @inheritParams plateau_ts_plot
 ##' @param indicator_col_title Text string; title for the indicator column of plots.
 ##' @param plateau_prob_col_title Text string; title for the plateau probability column of plots.
 ##' @param ... Passed to \code{\link{plateau_ts_plot}}.

@@ -564,11 +564,9 @@ add_plateau_lengths <- function(df, min_stall_length,
 
     ######## NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!
     ########
-    ######## This function calculates lengths of plateau periods, but
-    ######## does *not* take any account of the level
-    ######## condition. Plateaus start as soon as the plateau
-    ######## probability exceeds the threshold, regardless of the
-    ######## level condition.
+    ######## Added the level condition indicator. Plateau periods and
+    ######## durations should now be based only on years in which the
+    ######## level condition is satisfied.
 
     ## -------* Checks
 
@@ -577,7 +575,7 @@ add_plateau_lengths <- function(df, min_stall_length,
     stopifnot(all(c("iso", "indicator", "year") %in% colnames(df)))
     stopifnot(all(stall_column_names %in% colnames(df)))
     if (any(is.na(df[, stall_column_names])))
-        stop("'df[, stall_column_names]' has missing values.")
+        stop("'df[, c(", toString(stall_column_names), ")]' has missing values.")
 
     ## -------* Sub-functions
 
@@ -610,9 +608,10 @@ add_plateau_lengths <- function(df, min_stall_length,
         }
 
         ## Apply twice
-        df1 <- stall_info_cols(df[[stall_col_name]], stall_col_name)
-        df2 <- stall_info_cols(df[[stall_col_name]] &
-                               df1[[paste0(stall_col_name, "_len")]] >= min_stall_length,
+        df1 <- stall_info_cols(df[[stall_col_name]] & df[["Level_condition_met"]], #<<<
+                               stall_col_name)
+        df2 <- stall_info_cols(df[[stall_col_name]] & df[["Level_condition_met"]] #<<<
+                               & df1[[paste0(stall_col_name, "_len")]] >= min_stall_length,
                                stall_col_name)
 
         ## Rename columns

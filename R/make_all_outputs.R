@@ -183,11 +183,9 @@ make_all_results <- function(country_isos_to_process = NULL,
 
     ######## NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!
     ########
-    ######## `add_plateau_lengths()` calculates lengths of plateau
-    ######## periods, but does *not* take any account of the level
-    ######## condition. Plateaus start as soon as the plateau
-    ######## probability exceeds the threshold, regardless of the
-    ######## level condition.
+    ######## Added the level condition indicator. Plateau periods and
+    ######## durations should now be based only on years in which the
+    ######## level condition is satisfied.
 
         stall_prob_df <-
             add_plateau_lengths(stall_prob_df,
