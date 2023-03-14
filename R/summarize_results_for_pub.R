@@ -251,6 +251,11 @@ make_main_results_df <- function(x,
 }
 
 
+##' Separator used in year ranges.
+##' @export
+get_year_range_sep <- function() return("--")
+
+
 ##' Make summary table of FP plateaus and TFR stalls
 ##'
 ##' Creates a data frame that can be printed to summarize plateaus and
@@ -284,7 +289,7 @@ make_main_results_table <- function(x, require_level_condition = TRUE) {
         dplyr::group_by(block_w_TFR) |>
         dplyr::mutate(year_range =
                           dplyr::case_when(identical(min(year), max(year)) ~ as.character(floor(min(year))),
-                                           TRUE ~ paste0(floor(min(year)), "--", floor(max(year))))) |>
+                                           TRUE ~ paste0(floor(min(year)), get_year_range_sep(), floor(max(year))))) |>
         dplyr::slice(1) |>
         dplyr::ungroup()
     if (require_level_condition)
@@ -328,7 +333,7 @@ make_fp_plateau_only_results_table <- function(x, require_level_condition = TRUE
             dplyr::group_by(block_w_FP_type) |>
             dplyr::mutate(year_range =
                               dplyr::case_when(identical(min(year), max(year)) ~ as.character(floor(min(year))),
-                                               TRUE ~ paste0(floor(min(year)), "--", floor(max(year))))) |>
+                                               TRUE ~ paste0(floor(min(year)), get_year_range_sep(), floor(max(year))))) |>
             dplyr::slice(1) |>
             dplyr::ungroup()
         if (require_level_condition)
