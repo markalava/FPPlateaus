@@ -140,24 +140,24 @@ stall_plot <- function(plot_df,
     if (is.null(ylim_plot)) {
         if (identical(yvar, "annual_change_50%")) {
             ylim_plot <- c(-10, 10)
-            yscale_break <- 4
+            yscale_breaks <- seq(from = ylim_plot[1], to = ylim_plot[2], by = 4)
         } else if (identical(yvar, "stall_prob") && identical(probability_scale, "prop")) {
             ylim_plot <- c(0, 1)
-            yscale_break <- 0.2
+            yscale_breaks <- seq(from = ylim_plot[1], to = ylim_plot[2], by = 0.2)
         } else if (identical(yvar, "stall_prob") && identical(probability_scale, "percent")) {
             ylim_plot <- c(0, 100)
-            yscale_break <- 20
+            yscale_breaks <- seq(from = ylim_plot[1], to = ylim_plot[2], by = 20)
         } else if (yvar %in% c("Total_median", "Modern_median", "Traditional_median",
                                 "Unmet_median", "TotalPlusUnmet_median", "TradPlusUnmet_median",
                                "Met Demand_median", "MetDemModMeth_median")) {
             yvar_indicator <- gsub("_median", "", yvar)
-            yscale_break <- 20
+            yscale_breaks <- ggplot2::waiver()
             ylim_plot <- c(0, ceiling(max(c(plot_df[[paste0(yvar_indicator, ".97.5%")]]) * 105,
-                                          yscale_break)))
+                                          20)))
             if (is.na(ylim_plot[2])) ylim_plot[2] <- 100
         } else {
             ylim_plot <- c(0, 100)
-            yscale_break <- 20
+            yscale_breaks <- seq(from = ylim_plot[1], to = ylim_plot[2], by = 20)
         }
     }
 
@@ -288,8 +288,7 @@ stall_plot <- function(plot_df,
     ## Fill and Pattern scales
     fill_alpha <- 0.25
     gp <- gp +
-        scale_y_continuous(limits = ylim_plot,
-                           breaks = seq(from = ylim_plot[1], to = ylim_plot[2], by = yscale_break)) +
+        scale_y_continuous(limits = ylim_plot, breaks = yscale_breaks) +
         scale_fill_manual(values = setNames(c("grey75",
                                               RColorBrewer::brewer.pal(n = 11, "RdBu")[1],
                                               RColorBrewer::brewer.pal(n = 11, "RdBu")[11],
