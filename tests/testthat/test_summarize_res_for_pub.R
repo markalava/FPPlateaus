@@ -91,9 +91,9 @@ test_that("`make_tbl_country_n_plateau_years()` works.", {
 })
 
 
-test_that("`make_period_compare_plot()` works.", {
+test_that("`period_compare_plot()` works.", {
     data(sample_output_mwra_all_res_df)
-    x <- make_period_compare_plot(
+    x <- period_compare_plot(
         make_main_results_df(
             sample_output_mwra_all_res_df,
             stall_probability = 0.5, indicator = "MetDemModMeth"))

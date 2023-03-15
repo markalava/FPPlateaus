@@ -581,11 +581,11 @@ make_tbl_country_n_plateau_years <- function(x, rename = NULL) {
 ##' @return \code{\link{ggplot2}} plot (invisibly).
 ##' @author Mark Wheldon
 ##' @export
-make_period_compare_plot <- function(x,
+period_compare_plot <- function(x,
                                      keep_only_stalls_c = TRUE,
                                      by_FP_plateau_type = TRUE,
                                      CP_abbrev = "MCP",
-                                     patterns = FALSE) {
+                                     use_ggpattern = FALSE) {
     stopifnot(is.data.frame(x))
     ## Copied from 'https://github.com/tidyverse/ggplot2/issues/3171'
     ## --->|
@@ -611,7 +611,6 @@ make_period_compare_plot <- function(x,
     ## Data Frames
 
     if (keep_only_stalls_c) {
-        ## iso_keep <- unique(x[x$FP_plateau | x$TFR_stall, "iso"])
         iso_keep <- unique(x[x$FP_plateau | x$stall_TFR_any, "iso"])
         x <- x[x$iso %in% iso_keep, ]
     }
@@ -622,14 +621,8 @@ make_period_compare_plot <- function(x,
 
     x$name <- factor(x$name, levels = sort(unique(x$name), decreasing = TRUE), ordered = TRUE)
 
-    ## if (indicator %in% c("Modern", "Unmet"))
-    ##     x <- x |> dplyr::mutate(FP_out_of_range = !Level_condition_met)
-    ## else if (indicator %in% "MetDemModMeth")
-    ##     x <- x |> dplyr::mutate(FP_out_of_range = !MDMM_in_range)
-
     x <- x |>
         dplyr::select(c("name", "year", "FP_out_of_range", "FP_plateau_type", "TFR_stall_type",
-                        ## "FP_plateau", "TFR_stall", "region"))
                         "FP_plateau", "stall_TFR_any", "region","Level_condition_met"))
 
     x$y_loc <- x$name
@@ -646,7 +639,7 @@ make_period_compare_plot <- function(x,
 
     bar_height <- 0.4
     bar_alpha <- 0.75
-    fill_values <- c("gray75", RColorBrewer::brewer.pal(n = 11, "RdBu")[c(1,2,8,10,11)])
+    fill_values <- c("gray75", RColorBrewer::brewer.pal(n = 11, "RdBu")[c(1,2,7,9,11)])
     if (by_FP_plateau_type) {
         fill_names <- c("Level condition not met",
                         attr(x, "FP_plateau_types"),
@@ -675,7 +668,7 @@ make_period_compare_plot <- function(x,
               strip.text = element_text(colour = "white"),
               panel.grid.major.y = element_line(colour = "black"))
 
-    if (patterns) {
+    if (use_ggpattern) {
         return(gp +
                ggpattern::scale_pattern_manual(values = setNames(c("pch",
                                                                    rep("none", length(fill_names) - 1)),
