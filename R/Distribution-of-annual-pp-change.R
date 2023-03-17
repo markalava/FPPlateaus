@@ -11,11 +11,11 @@ appx_rates_load_results <- function(path, level_condition) {
      df$value <- df$value*100 # Convert rates to percentages
 
      df <- df %>%
-         arrange(Iso, variable) %>% # Sort data by location and variable (which is year)
-         filter(variable>=1980 & variable<=2020) %>% # Subset data to between 1980 and 2020
-         group_by(Iso)%>%
-         mutate(diff = value - lag(value)) %>% # Get percentage point differences by country
-         filter(value>=level_condition[1] & value<=level_condition[2]) # Subset data to only include country-years where CPm is between 10 and 60
+         dplyr::arrange(Iso, variable) %>% # Sort data by location and variable (which is year)
+         dplyr::filter(variable>=1980 & variable<=2020) %>% # Subset data to between 1980 and 2020
+         dplyr::group_by(Iso)%>%
+         dplyr::mutate(diff = value - lag(value)) %>% # Get percentage point differences by country
+         dplyr::filter(value>=level_condition[1] & value<=level_condition[2]) # Subset data to only include country-years where CPm is between 10 and 60
 
      return(df)
 }
@@ -58,19 +58,27 @@ appx_rates_stats_IQR <- function(x) { # 'x' is the result from 'appx_rates_stats
 }
 
 ##' @export
-appx_rates_make_ggplot <- function(df, include_table = FALSE, title = NULL) {
+appx_rates_make_ggplot <- function(df, include_table = FALSE, title = NULL, trim_upper_q = 0.995,
+                                   xlim_min_max = c(-1, 4)) {
     df <- as.data.frame(df)
 
     ## calculate quantiles /before/ trimming.
     q <- appx_rates_stats_tbl(df, quantiles = c(0.1,0.25,0.5,0.75,0.9))$quantiles$quantile
 
     ## Trim to remove very extreme values
-    df <- df[df$diff < quantile(df$diff, 0.995, na.rm = TRUE), ]
+    if (!is.null(trim_upper_q)) {
+        df <- df[df$diff < quantile(df$diff, 0.995, na.rm = TRUE), ]
+    }
+
+    ## x-limits min/max. Loser way of specifying x-axis limits; will
+    ## expand if given limits result in truncation.
+    xlim <- c(min(min(df$diff, na.rm = TRUE) * 1.05, xlim_min_max[1]),
+              max(max(df$diff, na.rm = TRUE) * 1.05, xlim_min_max[2]))
 
     ## Create plot
     p <- ggplot(df, aes(x=diff))+
-        geom_histogram(binwidth=0.1, color="black", fill="blue", alpha=0.2)+
-        scale_x_continuous(breaks=seq(-1,4,0.5))+
+        geom_histogram(aes(y = ..density..), binwidth=0.1, color="black", fill="blue", alpha=0.2)+
+        scale_x_continuous(limits = xlim, breaks=seq(xlim[1], xlim[2], 0.5)) +
         ylab("Country-years")+
         xlab("Annual Percentage Point Difference")
 
