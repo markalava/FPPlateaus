@@ -446,7 +446,7 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
 ##----------------------------------------------------------------------
 
 ##' @export
-add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 - MCP+SDG", "v1 - SDG Only", "v2 - SDG Only"),
+add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 - MCP+SDG", "v1 - SDG Only", "v2 - SDG Only", "v3 - lower 90% UI"),
                                                 CP_range_condition_min,
                                                 CP_range_condition_max,
                                                 MDMM_range_condition_min,
@@ -462,15 +462,27 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
 
     Level_condition_variant <- match.arg(Level_condition_variant)
 
-    df <- dplyr::mutate(df,
-                        CP_in_range = Modern_median > CP_range_condition_min &
-                            Modern_median <= CP_range_condition_max,
-                        MDMM_in_range = MetDemModMeth_median > MDMM_range_condition_min &
-                            MetDemModMeth_median <= MDMM_range_condition_max,
-                        indicator_in_range = dplyr::case_when(indicator %in% c("Modern", "Unmet") ~ CP_in_range,
-                                                              indicator == "MetDemModMeth" ~ MDMM_in_range,
-                                                              TRUE ~ NA)
-                        )
+    if (identical(Level_condition_variant, "v3 - lower 90% UI")) {
+        df <- dplyr::mutate(df,
+                            CP_in_range = `Modern.10%` > CP_range_condition_min &
+                                `Modern.10%` <= CP_range_condition_max,
+                            MDMM_in_range = `MetDemModMeth.10%` > MDMM_range_condition_min &
+                                `MetDemModMeth.10%` <= MDMM_range_condition_max,
+                            indicator_in_range = dplyr::case_when(indicator %in% c("Modern", "Unmet") ~ CP_in_range,
+                                                                  indicator == "MetDemModMeth" ~ MDMM_in_range,
+                                                                  TRUE ~ NA)
+                            )
+    } else {
+        df <- dplyr::mutate(df,
+                            CP_in_range = Modern_median > CP_range_condition_min &
+                                Modern_median <= CP_range_condition_max,
+                            MDMM_in_range = MetDemModMeth_median > MDMM_range_condition_min &
+                                MetDemModMeth_median <= MDMM_range_condition_max,
+                            indicator_in_range = dplyr::case_when(indicator %in% c("Modern", "Unmet") ~ CP_in_range,
+                                                                  indicator == "MetDemModMeth" ~ MDMM_in_range,
+                                                                  TRUE ~ NA)
+                            )
+    }
 
     ## IMPORTANT: Make sure 'df' is sorted. Will re-sort later using
     ## same keys to ensure ordering of 'df' matches ordering of
@@ -496,7 +508,7 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
         ## All at once
         Level_condition_met[idx_indicators_used] <- df[idx_indicators_used, "indicator_in_range"]
 
-    } else if (identical(Level_condition_variant, "v2 - SDG Only")) {
+    } else if (Level_condition_variant %in% c("v2 - SDG Only", "v3 - lower 90% UI")) {
         ## First Pass: Set to 'in range' values as for previous versions.
         Level_condition_met[idx_indicators_used] <- df[idx_indicators_used, "indicator_in_range"]
 
@@ -515,9 +527,15 @@ add_level_condition_indicators <- function(df, Level_condition_variant = c("v1 -
             stopifnot(identical(nrow(idx), nrow_check))
 
             ## ... but don't include years where the max is exceeded.
-            idx <- !is.na(idx$min_year) & idx$year >= idx$min_year & (
-                (idx$indicator %in% c("Modern", "Unmet") & idx$Modern_median <= CP_range_condition_max) |
-                (idx$indicator == "MetDemModMeth" & idx$MetDemModMeth_median <= MDMM_range_condition_max))
+            if (identical(Level_condition_variant, "v3 - lower 90% UI")) {
+                idx <- !is.na(idx$min_year) & idx$year >= idx$min_year & (
+                    (idx$indicator %in% c("Modern", "Unmet") & idx$`Modern.10%` <= CP_range_condition_max) |
+                    (idx$indicator == "MetDemModMeth" & idx$`MetDemModMeth.10%` <= MDMM_range_condition_max))
+            } else {
+                idx <- !is.na(idx$min_year) & idx$year >= idx$min_year & (
+                    (idx$indicator %in% c("Modern", "Unmet") & idx$Modern_median <= CP_range_condition_max) |
+                    (idx$indicator == "MetDemModMeth" & idx$MetDemModMeth_median <= MDMM_range_condition_max))
+            }
 
             Level_condition_met[idx] <- TRUE
         }

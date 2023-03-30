@@ -80,7 +80,8 @@ for (nc in c("serial", "parallel")) {
                                                                   uwra = S0_mar_dir_name_uwra),
                                  denominator_count_filename = S0_denominator_count_filename,
                                  .testing = TRUE,
-                                 Level_condition_variant = "v2 - SDG Only",
+                                 Level_condition_variant = "v3 - lower 90% UI"## "v2 - SDG Only"
+                                ,
                                  ncores = ncores)
         }
     }

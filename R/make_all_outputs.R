@@ -49,11 +49,15 @@ make_all_results <- function(country_isos_to_process = NULL,
                              datestamp = NULL,
                              ncores = parallelly::availableCores(omit = 1),
                              .testing = FALSE,
-                             Level_condition_variant = c("v1 - MCP+SDG", "v1 - SDG Only", "v2 - SDG Only")
+                             Level_condition_variant = c("v1 - MCP+SDG", "v1 - SDG Only", "v2 - SDG Only",
+                                                         "v3 - lower 90% UI")
                                 # 'v1' means level condition only met in years when indicator(s) in range.
+                                #
                                 # 'v2' means level condition met from first year indicator in range, and forever thereafter.
                                 # 'MCP+SDG' means SDG level condition depends on levels of MCP and SDG.
                                 # 'SDG Only' means SDG level condition depends only on level of SDG.
+                                #
+                                # 'v3' means same as 'v2' but use the lower limit of the 90% UIs instead of the medians.
                              ) {
 
     message("\nMaking all results")
