@@ -633,7 +633,7 @@ period_compare_plot <- function(x,
                labels = paste0("TFR: ", as.character(na.omit(unique(x$TFR_stall_type)))))
 
     if (by_FP_plateau_type) x$FP_plateau_type <- factor(x$FP_plateau_type)
-    else x$FP_plateau_type <- paste0(CP_abbrev, " Plateau\n(Rate condition threshold = 0.5, probability = 80%)")
+    else x$FP_plateau_type <- paste0(CP_abbrev, " plateau\n(Rate condition threshold = 0.5, probability = 80%)")
 
     ## Plot Features
 
@@ -647,7 +647,7 @@ period_compare_plot <- function(x,
                         "TFR: Moderate evidence", "TFR: Strong+ evidence")
     } else {
         fill_names <- c("Level condition not met",
-                        paste0(CP_abbrev, " Plateau\n(Rate condition threshold = 0.5, probability = 80%)"), "",
+                        paste0(CP_abbrev, " plateau\n(Rate condition threshold = 0.5, probability = 80%)"), "",
                         "TFR: Limited evidence",
                         "TFR: Moderate evidence", "TFR: Strong+ evidence")
     }
@@ -764,7 +764,7 @@ plateau_compare_def_plot <- function(c_code, res_05_df, res_03_df, res_01_df, CP
     }
 
     stall_plot(subset(res_05_df, iso == c_code),
-               CP_abbrev = paste0(CP_abbrev, " Plateau\n(Rate condition threshold = 0.5, probability = 80%"),
+               CP_abbrev = paste0(CP_abbrev, " plateau\n(Rate condition threshold = 0.5, probability = 80%)"),
                xvar = "year",
                yvar = "stall_prob",
                stall_probability_threshold = 0.8,
@@ -809,7 +809,7 @@ plateau_ts_plot <- function(c_code, res_df,
     lt_leg_title_old <- linetype_legend_title
     out_list <- lapply(yvar_fp_plot, function(z) {
         if (identical(z, "stall_prob")) {
-            lt_leg_title_z <- paste0(linetype_legend_title, "\n('Plateau Probability' panels)")
+            lt_leg_title_z <- paste0(linetype_legend_title, '\n("Plateau Probability" panels)')
             lc_z <- stall_prob_line_colour
         } else {
             lt_leg_title_z <- linetype_legend_title
@@ -824,7 +824,7 @@ plateau_ts_plot <- function(c_code, res_df,
                                      ...)
         } else {
             stall_plot(subset(res_df, iso == c_code),
-                       CP_abbrev = paste0(CP_abbrev, " Plateau\n(Rate cond. threshold = 0.5,\nprobability = 80%)"),
+                       CP_abbrev = paste0(CP_abbrev, " plateau\n(Rate cond. threshold = 0.5,\nprobability = 80%)"),
                        CP_not_in_range_abbrev = CP_not_in_range_abbrev,
                        facet_by_indicator = FALSE,
                        yvar = z,

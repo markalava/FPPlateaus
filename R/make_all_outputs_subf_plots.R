@@ -285,19 +285,44 @@ stall_plot <- function(plot_df,
         }
     }
 
+    ## Show level conditions?
+    add_range_regions <- FALSE
+    if (facet_by_indicator) add_range_regions <- TRUE
+    else if (identical(length(unique(plot_df$indicator)), 1L)) {
+        indicator_not_in_range_df <-
+            indicator_not_in_range_df[indicator_not_in_range_df$indicator == plot_df$indicator[1],]
+        add_range_regions <- TRUE
+    }
+
     ## Fill and Pattern scales
+    fill_values <- c("grey75",
+                     RColorBrewer::brewer.pal(n = 11, "RdBu")[1],
+                     RColorBrewer::brewer.pal(n = 11, "RdBu")[11],
+                     RColorBrewer::brewer.pal(n = 11, "RdBu")[10],
+                     RColorBrewer::brewer.pal(n = 11, "RdBu")[8])
+
+    pattern_values <- c("pch", "none", "none", "none", "none")
+
+    leg_limits <- c("Level condition\nnot met",
+                     CP_abbrev,
+                     "TFR:\nStrong+\nevidence", "TFR:\nModerate\nevidence",
+                     "TFR:\nLimited\nevidence")
+
+    leg_idx <- integer()
+    if (add_range_regions) leg_idx <- c(leg_idx, 1)
+    if (add_FP_stalls) leg_idx <- c(leg_idx, 2)
+    if (add_TFR_stalls) leg_idx <- c(leg_idx, 3:5)
+
+    fill_values <- fill_values[leg_idx]
+    pattern_values <- pattern_values[leg_idx]
+    leg_limits <- leg_limits[leg_idx]
+
     fill_alpha <- 0.25
+
     gp <- gp +
         scale_y_continuous(limits = ylim_plot, breaks = yscale_breaks) +
-        scale_fill_manual(values = setNames(c("grey75",
-                                              RColorBrewer::brewer.pal(n = 11, "RdBu")[1],
-                                              RColorBrewer::brewer.pal(n = 11, "RdBu")[11],
-                                              RColorBrewer::brewer.pal(n = 11, "RdBu")[10],
-                                              RColorBrewer::brewer.pal(n = 11, "RdBu")[8]),
-                                            c("Level condition\nnot met",
-                                              CP_abbrev,
-                                              "TFR:\nStrong+\nevidence", "TFR:\nModerate\nevidence",
-                                              "TFR:\nLimited\nevidence")),
+        scale_fill_manual(values = fill_values,
+                          limits = leg_limits,
                           name = legend_title)  +
         labs(title = paste0(cname, " (",
                             rname, ")"),
@@ -308,12 +333,8 @@ stall_plot <- function(plot_df,
 
     if (use_ggpattern) {
         gp <- gp +
-            ggpattern::scale_pattern_manual(values = setNames(c("pch",
-                                                                "none", "none", "none", "none"),
-                                                              c("Level condition\nnot met",
-                                                                CP_abbrev,
-                                                                "TFR:\nStrong+\nevidence", "TFR:\nModerate\nevidence",
-                                                                "TFR:\nLimited\nevidence")),
+            ggpattern::scale_pattern_manual(values = pattern_values,
+                                            limits = leg_limits,
                                             name = legend_title)
     }
 
@@ -323,20 +344,13 @@ stall_plot <- function(plot_df,
     if (facet_by_indicator) gp <- gp + facet_wrap(~ indicator)
 
     ## Level conditions
-    add_range_regions <- FALSE
-    if (facet_by_indicator) add_range_regions <- TRUE
-    else if (identical(length(unique(plot_df$indicator)), 1L)) {
-        indicator_not_in_range_df <-
-            indicator_not_in_range_df[indicator_not_in_range_df$indicator == plot_df$indicator[1],]
-        add_range_regions <- TRUE
-    }
     if (add_range_regions) {
         if (nrow(indicator_not_in_range_df)) {
             if (use_ggpattern) {
                 gp <- gp + ggpattern::geom_polygon_pattern(data = indicator_not_in_range_df,
                                                            aes(x = x, y = y, group = id,
-                                                               fill = "Level condition\nnot met",
-                                                               pattern = "Level condition\nnot met"),
+                                                               fill = leg_limits[1],
+                                                               pattern = leg_limits[1]),
                                                            pattern_shape = 20,
                                                            pattern_density = 0.1,
                                                            pattern_angle = 0,
@@ -347,7 +361,7 @@ stall_plot <- function(plot_df,
             } else {
                 gp <- gp + geom_polygon(data = indicator_not_in_range_df,
                                         aes(x = x, y = y, group = id,
-                                            fill = "Level condition\nnot met"),
+                                            fill = leg_limits[1]),
                                         colour = NA,
                                         alpha = fill_alpha)
             }
