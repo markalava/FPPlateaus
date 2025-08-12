@@ -115,12 +115,10 @@ make_all_results <- function(country_isos_to_process = NULL,
 
         if (identical(this_mar, "wra")) {
             this_message_txt <- "(1 of 2) .. All women (WRA)"
-            this_run_name <- filepaths_inputs$FPEM_results_subdir_names$rn_wra
             this_output_dir <- filepaths_inputs$res_dir_wra
             this_all_res_filepath <- filepaths_outputs$wra_all_res_filepath
         } else {
             this_message_txt <- "(2 of 2) .. Married women (MWRA)"
-            this_run_name <- filepaths_inputs$FPEM_results_subdir_names$rn_mwra
             this_output_dir <- filepaths_inputs$res_dir_mwra
             this_all_res_filepath <- filepaths_outputs$mwra_all_res_filepath
         }
@@ -136,7 +134,7 @@ make_all_results <- function(country_isos_to_process = NULL,
         if (!is.null(ncores)) {
             cl <- parallel::makeCluster(min(ncores, length(country_isos_to_process)))
             parallel::clusterExport(cl, varlist = c("make_stall_prob_df", "lm_local_arr", "filepaths_inputs",
-                                                    "this_run_name", "this_output_dir",
+                                                    "this_output_dir",
                                                     "smooth_type", "smoothing_method", "min_stall_length",
                                                     "denominator_count_filename",
                                                     "change_condition", ".testing"),
@@ -145,8 +143,7 @@ make_all_results <- function(country_isos_to_process = NULL,
         stall_prob_df <-
             pbapply::pblapply(country_isos_to_process,
                               function(z) {
-                         make_stall_prob_df(z, run_name = this_run_name,
-                                            output_dir = this_output_dir,
+                         make_stall_prob_df(z, output_dir = this_output_dir,
                                             add_iso_column = TRUE,
                                             smooth_type = smooth_type,
                                             differences = 1, # the order of the differences, hardcoded
@@ -217,7 +214,6 @@ make_all_results <- function(country_isos_to_process = NULL,
             pbapply::pblapply(country_isos_to_process,
                               function(z) {
                          make_q_diff_df(z,
-                                        run_name = this_run_name,
                                         output_dir = this_output_dir,
                                         add_iso_column = TRUE,
                                         differences = 1,

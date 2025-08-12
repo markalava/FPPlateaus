@@ -29,7 +29,7 @@ ensure_new_dir <- function(path) {
 ##' @export
 get_iso_all <- function(output_dir) {
     iso_all <- base::merge(FPEMglobal.aux::get_used_unpd_regions(output_dir = output_dir),
-                           FPEMglobal.aux::get_195_countries()[, "iso", drop = FALSE],
+                           FPEMglobal.aux::get_195_countries(output_dir = output_dir)[, "iso", drop = FALSE],
                        by = "iso",
                        all.y = TRUE, all.x = FALSE)
     iso_all$name[grep("^C.+te d.+Ivoire$", iso_all$name)] <- "Cote d'Ivoire"

@@ -49,8 +49,7 @@ pearson_phi <- function(x, y) {
 ##----------------------------------------------------------------------
 
 ##' @export
-make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
-                           root_dir = ".",
+make_q_diff_df <- function(iso_code, output_dir = NULL,
                            differences,
                            denominator_count_filename,
                            add_iso_column = TRUE,
@@ -60,18 +59,18 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
     load(file.path(output_dir, "mcmc.meta.rda"))
 
     ## Marital group
-    if (isTRUE(mcmc.meta$general$all.women.run.copy)) marital_group_long <- "all women"
+    if (isTRUE(mcmc.meta$general$all.women.run.copy)) marital_group_long <- "all_women"
     else if (identical(mcmc.meta$general$marital.group, "UWRA")) marital_group_long <- "unmarried"
     else marital_group_long <- "married"
 
     ## Denominators
-    denom <- FPEMglobal.aux::get_csv_denominators(run_name = run_name, output_dir = output_dir,
-                                       root_dir = root_dir,
+    denom <- FPEMglobal.aux::get_denominators(output_dir = output_dir,
                                        filename = denominator_count_filename,
-                                       marital_group = marital_group_long) |>
+                                       marital_group = marital_group_long,
+                                       version = "used_csv") |>
             dplyr::filter(iso == iso_code)
 
-    if (identical(marital_group_long, "all women")) {
+    if (identical(marital_group_long, "all_women")) {
 
         if (isTRUE(.testing)) {
             ## TESTING: Use pre-saved small trajectory arrays
@@ -79,8 +78,8 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
             data("sample_trajectories_all_women", package = "FPPlateaus", verbose = FALSE, envir = tra)
             tra <- tra$sample_trajectories_all_women[[as.character(iso_code)]]
         } else {
-            tra <- FPEMglobal.aux::get_country_traj_aw(run_name = run_name, output_dir = output_dir,
-                                                       root_dir = root_dir, iso_code = iso_code)
+            tra <- FPEMglobal.aux::get_country_traj_aw(output_dir = output_dir,
+                                                       iso_code = iso_code)
         }
 
         denom <- array(denom$count,
@@ -110,8 +109,7 @@ make_q_diff_df <- function(iso_code, run_name, output_dir = NULL,
             data("sample_trajectories_married_women", package = "FPPlateaus", verbose = FALSE, envir = tra)
             tra <- tra$sample_trajectories_married_women[[as.character(iso_code)]]
         } else {
-            tra <- FPEMglobal.aux::get_country_traj_muw(run_name = run_name, output_dir = output_dir,
-                                     root_dir = root_dir,
+            tra <- FPEMglobal.aux::get_country_traj_muw(output_dir = output_dir,
                                      iso_code = iso_code)
         }
 
@@ -275,8 +273,7 @@ lm_local_arr <- function(x, bandwidth, return_value = c("beta", "Y_hat")) {
 ##----------------------------------------------------------------------
 
 ##' @export
-make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
-                               root_dir = ".",
+make_stall_prob_df <- function(iso_code, output_dir = NULL,
                                differences,
                                change_condition,
                                smooth_type = c("Annual Difference", "Moving Average", "Local Linear Smooth"),
@@ -293,21 +290,21 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
     load(file.path(output_dir, "mcmc.meta.rda"))
 
     ## Marital group
-    if (isTRUE(mcmc.meta$general$all.women.run.copy)) marital_group_long <- "all women"
+    if (isTRUE(mcmc.meta$general$all.women.run.copy)) marital_group_long <- "all_women"
     else if (identical(mcmc.meta$general$marital.group, "UWRA")) marital_group_long <- "unmarried"
     else marital_group_long <- "married"
 
     ## Denominators
-    denom <- FPEMglobal.aux::get_csv_denominators(run_name = run_name, output_dir = output_dir,
-                                   root_dir = root_dir,
+    denom <- FPEMglobal.aux::get_denominators(output_dir = output_dir,
                                    filename = denominator_count_filename,
-                                   marital_group = marital_group_long) |>
+                                   marital_group = marital_group_long,
+                                   version = "used_csv") |>
         dplyr::filter(iso == iso_code)
 
     ## Trajectories
-    if (identical(marital_group_long, "all women")) {
-        tra <- FPEMglobal.aux::get_country_traj_aw(run_name = run_name, output_dir = output_dir,
-                                   root_dir = root_dir, iso_code = iso_code)
+    if (identical(marital_group_long, "all_women")) {
+        tra <- FPEMglobal.aux::get_country_traj_aw(output_dir = output_dir,
+                                   iso_code = iso_code)
 
         ## TESTING: Keep only 10 trajectories
         if (isTRUE(.testing)) tra <- tra[,,1:10]
@@ -333,8 +330,7 @@ make_stall_prob_df <- function(iso_code, run_name, output_dir = NULL,
 
     } else {
 
-        tra <- FPEMglobal.aux::get_country_traj_muw(run_name = run_name, output_dir = output_dir,
-                                     root_dir = root_dir,
+        tra <- FPEMglobal.aux::get_country_traj_muw(output_dir = output_dir,
                                      iso_code = iso_code)
 
         ## TESTING: Keep only 10 trajectories

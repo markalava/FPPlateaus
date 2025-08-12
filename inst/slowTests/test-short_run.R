@@ -13,7 +13,8 @@ library(FPPlateaus)
 ## * Directories, Filepaths
 
 stopifnot(dir.exists(
-    S0_FPEM_results_dir <- file.path(Sys.getenv("SHAREPOINT_PDU_FPEM_RESULTS"), "Released", "2022")))
+    S0_FPEM_results_dir <- "D:/FPEM/2022/Released/age_total"## file.path(Sys.getenv("MY_LOCAL_MODEL_RUNS_DIR"), "FPEM_run_COPY/2022/Released/age_total")
+))
 
 S0_mar_dir_name_wra <- "15-49_wra"
 S0_mar_dir_name_mwra <- "15-49_mwra"
@@ -80,7 +81,7 @@ for (nc in c("serial", "parallel")) {
                                                                   uwra = S0_mar_dir_name_uwra),
                                  denominator_count_filename = S0_denominator_count_filename,
                                  .testing = TRUE,
-                                 Level_condition_variant = "v3 - lower 90% UI"## "v2 - SDG Only"
+                                 Level_condition_variant = "v2 - SDG Only"##"v3 - lower 90% UI"
                                 ,
                                  ncores = ncores)
         }

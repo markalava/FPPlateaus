@@ -7,8 +7,8 @@ ECHO. ==========================================================================
 ECHO. DATA
 ECHO. ================================================================================
 
-Rscript -e "setwd('data-raw'); example(source); sourceDir('.')"
-if %ERRORLEVEL% GEQ 1 PAUSE
+REM Rscript -e "setwd('data-raw'); example(source); sourceDir('.')"
+REM if %ERRORLEVEL% GEQ 1 PAUSE
 
 ECHO.
 ECHO.

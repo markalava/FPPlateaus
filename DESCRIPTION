@@ -1,6 +1,6 @@
 Package: FPPlateaus
 Title: Contraceptive prevalence plateaus: A probabilistic approach
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: 
     c(person("Mark", "Wheldon", , "wheldon@un.org", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6897-9644")),
@@ -14,7 +14,7 @@ RoxygenNote: 7.3.2
 Depends: R (>= 4.1.0)
 Imports:
     dplyr,
-    FPEMglobal.aux (>= 0.0.5),
+    FPEMglobal.aux (>= 1.2.0),
     ggforce,
     ggpattern,
     ggplot2 (> 3.0.0),
