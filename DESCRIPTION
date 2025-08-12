@@ -1,16 +1,16 @@
 Package: FPPlateaus
-Title: Accompanies article XXXX
-Version: 0.0.0.9000
+Title: Contraceptive prevalence plateaus: A probabilistic approach
+Version: 1.0.0
 Authors@R: 
     c(person("Mark", "Wheldon", , "wheldon@un.org", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6897-9644")),
 	person("Joseph", "Molitoris", , "joseph.molitoris@un.org", role = c("aut"),
            comment = c(ORCID = "0000-0001-6038-8332")))
-Description: Implements methods in article XXX.
+Description: R code to accompany the article: Wheldon, M. C., Kantorová, V., Molitoris, J., Dasgupta, A. N. Z. (2024). "A New Look at Contraceptive Prevalence Plateaus in Sub-Saharan Africa: A Probabilistic Approach". Demographic Research 50: 899–928. <https://doi.org/10.4054/DemRes.2024.50.31>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Depends: R (>= 4.1.0)
 Imports:
     dplyr,
